@@ -51,7 +51,14 @@
 
 -- https://pve.proxmox.com/pve-docs/api-viewer/#/cluster/nextid
 -- use this proxmox endpoint to get next vmid when creating clones
-DROP TABLE IF EXISTS vmid_table;
+
+drop table if exists session_table;
+drop table if exists clone_table;
+drop table if exists allocation_table;
+drop table if exists group_content;
+drop table if exists group_table;
+drop table if exists user_table;
+drop table IF exists vmid_table;
 
 CREATE TABLE vmid_table(
     vmid INTEGER NOT NULL PRIMARY KEY,
@@ -60,8 +67,6 @@ CREATE TABLE vmid_table(
 -- type 0 is reserved vm created manually through proxmox UI
 -- type 1 is a template found while querying proxmox api
 -- type 2 is a clone, it is set by this app, while creating a clone.
-
-Drop TABLE if EXISTS user_table;
 
 CREATE TABLE user_table(
     userID VARCHAR NOT NUll PRIMARY KEY,
@@ -72,22 +77,16 @@ CREATE TABLE user_table(
 -- ldap provides unique strings for username,
 -- i decided to use those strings as key, and get rid of uidNumber
 
-drop table if exists group_table;
-
 create table group_table(
     groupID INTEGER PRIMARY KEY,
     groupName VARCHAR
 );
-
-drop table if exists group_content;
 
 create table group_content(
     groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE RESTRICT,
     userID VARCHAR NOT NULL REFERENCES user_table(userID) ON DELETE CASCADE,
     PRIMARY KEY(groupID, userID)
 );
-
-drop table if exists allocation_table;
 
 create table allocation_table(
     allocationID INTEGER PRIMARY KEY,
@@ -96,15 +95,11 @@ create table allocation_table(
     templateID INTEGER NOT NULL REFERENCES vmid_table(vmid) ON DELETE RESTRICT
 );
 
-drop table if exists clone_table;
-
 create table clone_table(
     cloneID INTEGER NOT NULL PRIMARY KEY REFERENCES vmid_table(vmid) ON DELETE RESTRICT,
     userID VARCHAR NOT NULL REFERENCES user_table(userID) ON DELETE RESTRICT,
     allocationID INTEGER NOT NULL REFERENCES allocation_table(allocationID) ON DELETE RESTRICT
 ) without rowid;
-
-drop table if exists session_table;
 
 create table session_table(
     seshHash VARCHAR PRIMARY KEY,
