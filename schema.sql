@@ -69,9 +69,9 @@ CREATE TABLE vmid_table(
 -- type 2 is a clone, it is set by this app, while creating a clone.
 
 CREATE TABLE user_table(
-    userID VARCHAR NOT NUll PRIMARY KEY,
+    userID TEXT NOT NUll PRIMARY KEY,
     userPermission INTEGER DEFAULT 0,
-    full_name VARCHAR NOT NULL
+    full_name TEXT NOT NULL
 ) without rowid;
 -- proxmox uses a string for userID,
 -- ldap provides unique strings for username,
@@ -79,32 +79,32 @@ CREATE TABLE user_table(
 
 create table group_table(
     groupID INTEGER PRIMARY KEY,
-    groupName VARCHAR
+    groupName TEXT
 );
 
 create table group_content(
     groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE RESTRICT,
-    userID VARCHAR NOT NULL REFERENCES user_table(userID) ON DELETE CASCADE,
+    userID TEXT NOT NULL REFERENCES user_table(userID) ON DELETE CASCADE,
     PRIMARY KEY(groupID, userID)
 );
 
 create table allocation_table(
     allocationID INTEGER PRIMARY KEY,
     groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE RESTRICT,
-    allocationName VARCHAR,
+    allocationName TEXT,
     templateID INTEGER NOT NULL REFERENCES vmid_table(vmid) ON DELETE RESTRICT
 );
 
 create table clone_table(
     cloneID INTEGER NOT NULL PRIMARY KEY REFERENCES vmid_table(vmid) ON DELETE RESTRICT,
-    userID VARCHAR NOT NULL REFERENCES user_table(userID) ON DELETE RESTRICT,
+    userID TEXT NOT NULL REFERENCES user_table(userID) ON DELETE RESTRICT,
     allocationID INTEGER NOT NULL REFERENCES allocation_table(allocationID) ON DELETE RESTRICT
 ) without rowid;
 
 create table session_table(
-    seshHash VARCHAR PRIMARY KEY,
-    loginDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    userID VARCHAR NOT NULL REFERENCES user_table(userID) on delete cascade
+    seshHash TEXT PRIMARY KEY,
+    loginDate INTEGER NOT NULL DEFAULT (strftime('%s')),
+    userID TEXT NOT NULL REFERENCES user_table(userID) on delete cascade
 );
 
 -- maybe delete restrict, will throw error, that can be read to
