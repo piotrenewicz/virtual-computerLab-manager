@@ -18,4 +18,3 @@ if __name__ == "__main__":
         return s.getsockname()[0]
     app.env = "development"
     app.run(host=get_ip(), port=5000, debug=True)
-    
