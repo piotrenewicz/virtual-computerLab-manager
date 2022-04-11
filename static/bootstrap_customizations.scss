@@ -1,0 +1,10 @@
+$enable-responsive-font-sizes: True;
+
+$primary: #363c42;
+
+// =================================== change bootstrap variables above this line ======================================
+@import "bootstrap_builder/node_modules/bootstrap/scss/functions";
+@import "bootstrap_builder/node_modules/bootstrap/scss/variables";
+@import "bootstrap_builder/node_modules/bootstrap/scss/mixins/breakpoints";
+@import "bootstrap_builder/node_modules/bootstrap/scss/vendor/rfs";
+// ===================================== add classes and mixins below this line ========================================
