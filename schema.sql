@@ -22,6 +22,7 @@
 -- allocation_table: (allocationID), groupID, allocationName, templateID
 -- vmid_table: (vmid), type
 -- Session_table: (sessionHash) -- login date -- userID
+-- config: (option) -- value
 
 
 -- type == {template, clone, reserved}
@@ -58,7 +59,13 @@ drop table if exists allocation_table;
 drop table if exists group_content;
 drop table if exists group_table;
 drop table if exists user_table;
-drop table IF exists vmid_table;
+drop table if exists vmid_table;
+drop table if exists config;
+
+create table config(
+    option TEXT NOT NULL PRIMARY KEY,
+    value BLOB
+);
 
 CREATE TABLE vmid_table(
     vmid INTEGER NOT NULL PRIMARY KEY,
