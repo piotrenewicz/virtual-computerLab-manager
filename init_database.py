@@ -1,12 +1,16 @@
-import sqlite3
+def init():
+    import sqlite3
 
-connection = sqlite3.connect('database.db')
+    connection = sqlite3.connect('database.db')
 
-with open('schema.sql') as f:
-    connection.executescript(f.read())
+    with open('schema.sql') as f:
+        connection.executescript(f.read())
 
-cur = connection.cursor()
+    cur = connection.cursor()
+    cur.execute("INSERT INTO config(option, value) VALUES (?, ?)", ("first-run", 1))
+    connection.commit()
+    connection.close()
 
-#  cur.execute("INSERT INTO vmid_table(vmid, type) VALUES (?, ?)", (1, 0))
-connection.commit()
-connection.close()
+
+if __name__ == "__main__":
+    init()
