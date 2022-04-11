@@ -54,12 +54,12 @@ def configuration():
         #require login, to protect the settings from tampering
         # we can't login before configured bc ldap is not set.
         pass
-    return 'Placeholder'
+    return render_template('config.html')
 
 
 @app.route('/login')
 def login():
-    return 'Placeholder'
+    return render_template('login.html')
 
 
 # when shipping remember to put a block here, we don't want to allow production use of development mode
