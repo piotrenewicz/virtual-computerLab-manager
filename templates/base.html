@@ -13,17 +13,22 @@
     <title>{% block title %} BASE {% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('entry_point') }}">HEADER TEXT</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-            <li class="nav-item active">
-                <a class="nav-link" href="#">About</a>
-            </li>
-            </ul>
+<div class="container-fluid">
+    <div class="row bg-secondary text-light">
+        <div class="col">
+            <div class="container">
+                <div class="row justify-content-between pt-3 pb-3">
+                    {% block navigation_area %}
+                        {% include 'common/navigation.html' %}
+                    {% endblock %}
+                    {#                        <div class="col-auto">#}
+                    {#                            IS THIS IN THE MIDDLE?#}
+                    {#                        </div>#}
+                    {% block user_area %}
+                        {% include 'common/user_indicator.html' %}
+                    {% endblock %}
+                </div>
+            </div>
         </div>
     </nav>
     <div class="container">
