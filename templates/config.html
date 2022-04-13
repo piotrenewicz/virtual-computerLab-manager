@@ -3,7 +3,145 @@
 {% block title %} App Configuration {% endblock %}
 
 {% block content %}
-    CONFIG PAGE
-
+    {#    <div class="row mt-2 pt-3 pb-3 bg-light border border-2 border-secondary rounded-3">#}
+    {#        <div class="col">#}
+    {#            CONFIG PAGE#}
+    {#        </div>#}
+    {#    </div>#}
+    <div class="row mt-2">
+        <div class="col p-0">
+            <div class="accordion" id="accordionConfig">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="accordionConfigHeading1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#accordionConfigCollapse1" aria-expanded="true"
+                                aria-controls="accordionConfigCollapse1">
+                            Proxmox Settings
+                        </button>
+                    </h2>
+                    <div id="accordionConfigCollapse1" class="accordion-collapse collapse show"
+                         aria-labelledby="accordionConfigHeading1" data-bs-parent="#accordionConfig">
+                        <div class="accordion-body">
+                            {#<strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.#}
+                            <form action="{{ url_for('save', target=1) }}" method="post">
+                                <div class="mb-3">
+                                    <label for="InputProxmoxAddress" class="form-label">Proxmox Address</label>
+                                    <input type="text" class="form-control" name="InputProxmoxAddress"
+                                           placeholder="0.0.0.0"
+                                           value="{{ request.form['InputProxmoxAddress'] or config_sections[1]['host'] }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="InputProxmoxBotUser" class="form-label">Proxmox Bot Login</label>
+                                    <input type="text" class="form-control" name="InputProxmoxBotUser"
+                                           placeholder="username@realm"
+                                           value="{{ request.form['InputProxmoxBotUser'] or config_sections[1]['user'] }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="InputProxmoxBotPass" class="form-label">Proxmox Bot Password</label>
+                                    <input type="password" class="form-control" name="InputProxmoxBotPass"
+                                           value="{{ request.form['InputProxmoxBotPass'] or config_sections[1]['password'] }}">
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL" {% if request.form.get('InputProxmoxSSL') == 'on' or config_sections[1]['verify_ssl'] == 1 %} checked {% endif %}>
+                                    <label class="form-check-label" for="InputProxmoxSSL">Use SSL for Proxmox</label>
+                                </div>
+                                <button type="submit" class="btn {% if session['check/1'] %} btn-success {% else %} btn-primary {% endif %}" formaction="{{ url_for('check_connection', target=1) }}">Check connection</button>
+                                <button type="submit" class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">Save</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="accordionConfigHeading2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="{% if config_sections[1]['host'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-target="#accordionConfigCollapse2" aria-expanded="false"
+                                aria-controls="accordionConfigCollapse2">
+                            Ldap Settings
+                            {% if not config_sections[1]['host'] %}
+{#                                <div class="lef>#}
+                                    <span class="ps-3 fas fa-lock fa-align-right"></span>
+{#                                </div>#}
+                            {% endif %}
+                        </button>
+                    </h2>
+                    <div id="accordionConfigCollapse2" class="accordion-collapse collapse"
+                         aria-labelledby="accordionConfigHeading2" data-bs-parent="#accordionConfig">
+                        <div class="accordion-body">
+                            <strong>This is the second item's accordion body.</strong> It is hidden by default, until
+                            the collapse plugin adds the appropriate classes that we use to style each element. These
+                            classes control the overall appearance, as well as the showing and hiding via CSS
+                            transitions. You can modify any of this with custom CSS or overriding our default variables.
+                            It's also worth noting that just about any HTML can go within the
+                            <code>.accordion-body</code>, though the transition does limit overflow.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="accordionConfigHeading3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#accordionConfigCollapse3" aria-expanded="false"
+                                aria-controls="accordionConfigCollapse3">
+                            Accordion Item #3
+                        </button>
+                    </h2>
+                    <div id="accordionConfigCollapse3" class="accordion-collapse collapse"
+                         aria-labelledby="accordionConfigHeading3" data-bs-parent="#accordionConfig">
+                        <div class="accordion-body">
+                            <strong>This is the third item's accordion body.</strong> It is hidden by default, until the
+                            collapse plugin adds the appropriate classes that we use to style each element. These
+                            classes control the overall appearance, as well as the showing and hiding via CSS
+                            transitions. You can modify any of this with custom CSS or overriding our default variables.
+                            It's also worth noting that just about any HTML can go within the
+                            <code>.accordion-body</code>, though the transition does limit overflow.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
+
+
+{#
+I need somewhere to list all settings that i will be creating
+
+    WE ARE NOT DOING:
+        database.db filename, that is always mounted before we could read that variable
+        webUI serving IP and port, We need those values to be good on first run, and frankly it's not our responsibility
+        the app should be hosted by a wsgi layer, and there is a server configuration file that decides IP and PORT
+
+
+    WE ARE DOING:
+        Collapsible submenus!
+        { unlocked by deafult
+        proxmox-address
+        proxmox-bot-user(username@realm)
+        proxmox-bot-pass
+        proxmox-require-ssl(checkbox)
+        check connection(btn response)
+        Save Proxmox Configuration (also sets up studnet teacher and maintainer roles) locked until check connection is success
+        } SECTION 1
+        { Locked until proxmox-address is in database
+        ldap-url
+        ldap-base
+        ldap-user-filter
+        check connection(btn response)
+        Save Ldap Configuration (also sets up ldap realm in proxmox) locked until check connection is success
+        } SECTION 2
+        { locked unitl ldap-url is in database
+        Sync ldap users (also syncs ldap realm in proxmox)
+        Sync proxmox vmid's (this is automatic)
+        Save
+        } SECTION 3
+        { locked unitl user_table has more than 0 entires
+        modlist with a search bar (and a button to post a search)
+        all users <=> teachers <=> VM Maitainers <=> Admins ( you )
+        Save - locked until there is at least1 entry in admins
+        } USER PERMISSIONS
+        { locked unitl there is at least1 entry in admins in the database.
+        SECRET_KEY - programmer note here commit this, and reload flask app somehow.
+        ADMIN LOGIN to finish configuration mode
+        FINISH APP SETUP (first-run) locked unitl this page is open logged in as admin user
+        } SECTION 0
+#}

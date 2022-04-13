@@ -31,11 +31,41 @@
                 </div>
             </div>
         </div>
-    </nav>
-    <div class="container">
-        {% block content %} {% endblock %}
     </div>
-    <!-- Bootstrap javascript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <div class="row">
+        <div class="col">
+            <main class="container">
+                {% block content %}
+                    <div class="row mt-2 pt-3 pb-3 bg-light border border-2 border-danger rounded-3">
+                        <div class="col text-danger">
+                            <h1>Not Implemented, </h1> <br>
+                            html template compilation error, no content to display <br>
+                            The page you tried to access is written wrong!
+                        </div>
+                    </div>
+                {% endblock content %}
+            </main>
+            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                {% for category, message in get_flashed_messages(with_categories=True) %}
+                    <div id="liveToast" class="toast show {{ toast_category_map[category] }}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+        {#                        <img src="..." class="rounded me-2" alt="...">#}
+                            <strong class="me-auto">{{ category }}</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+{#                            Hello, world! This is a toast message.#}
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Bootstrap javascript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
 </body>
 </html>
