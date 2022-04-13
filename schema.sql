@@ -22,7 +22,7 @@
 -- allocation_table: (allocationID), groupID, allocationName, templateID
 -- vmid_table: (vmid), type
 -- Session_table: (sessionHash) -- login date -- userID
--- config: (option) -- value
+-- config: (option) -- section -- value
 
 
 -- type == {template, clone, reserved}
@@ -64,6 +64,7 @@ drop table if exists config;
 
 create table config(
     option TEXT NOT NULL PRIMARY KEY,
+    section INTEGER,
     value BLOB
 );
 
