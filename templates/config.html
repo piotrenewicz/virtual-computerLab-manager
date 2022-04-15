@@ -13,16 +13,17 @@
             <div class="accordion" id="accordionConfig">
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading1">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        <button class="accordion-button {{ active_section(1, '', 'collapsed') }}" type="button"
+                                data-bs-toggle="collapse"
                                 data-bs-target="#accordionConfigCollapse1" aria-expanded="true"
                                 aria-controls="accordionConfigCollapse1">
                             Proxmox Settings
                         </button>
                     </h2>
-                    <div id="accordionConfigCollapse1" class="accordion-collapse collapse show"
+                    <div id="accordionConfigCollapse1"
+                         class="accordion-collapse collapse {{ active_section(1, 'show', '') }}"
                          aria-labelledby="accordionConfigHeading1" data-bs-parent="#accordionConfig">
                         <div class="accordion-body">
-                            {#<strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.#}
                             <form action="{{ url_for('save', target=1) }}" method="post">
                                 <div class="mb-3">
                                     <label for="InputProxmoxAddress" class="form-label">Proxmox Address</label>
@@ -42,57 +43,311 @@
                                            value="{{ request.form['InputProxmoxBotPass'] or config_sections[1]['password'] }}">
                                 </div>
                                 <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL" {% if request.form.get('InputProxmoxSSL') == 'on' or config_sections[1]['verify_ssl'] == 1 %} checked {% endif %}>
+                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL"
+                                            {% if request.form.get('InputProxmoxSSL') == 'on' or config_sections[1]['verify_ssl'] == 1 %}
+                                           checked {% endif %}>
                                     <label class="form-check-label" for="InputProxmoxSSL">Use SSL for Proxmox</label>
                                 </div>
-                                <button type="submit" class="btn {% if session['check/1'] %} btn-success {% else %} btn-primary {% endif %}" formaction="{{ url_for('check_connection', target=1) }}">Check connection</button>
-                                <button type="submit" class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">Save</button>
+                                <button type="submit"
+                                        class="btn {% if session['check/1'] %} btn-success {% else %} btn-primary {% endif %}"
+                                        formaction="{{ url_for('check_connection', target=1) }}">Check connection
+                                </button>
+                                <button type="submit"
+                                        class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">
+                                    Save
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading2">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="{% if config_sections[1]['host'] %}collapse{% else %}disabled{% endif %}"
+                        <button class="accordion-button {{ active_section(2, '', 'collapsed') }}" type="button"
+                                data-bs-toggle="{% if config_sections[1]['host'] %}collapse{% else %}disabled{% endif %}"
                                 data-bs-target="#accordionConfigCollapse2" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse2">
                             Ldap Settings
                             {% if not config_sections[1]['host'] %}
-{#                                <div class="lef>#}
-                                    <span class="ps-3 fas fa-lock fa-align-right"></span>
-{#                                </div>#}
+                                <span class="ps-3 fas fa-lock"></span>
                             {% endif %}
                         </button>
                     </h2>
-                    <div id="accordionConfigCollapse2" class="accordion-collapse collapse"
+                    <div id="accordionConfigCollapse2"
+                         class="accordion-collapse collapse {{ active_section(2, 'show', '') }}"
                          aria-labelledby="accordionConfigHeading2" data-bs-parent="#accordionConfig">
                         <div class="accordion-body">
-                            <strong>This is the second item's accordion body.</strong> It is hidden by default, until
-                            the collapse plugin adds the appropriate classes that we use to style each element. These
-                            classes control the overall appearance, as well as the showing and hiding via CSS
-                            transitions. You can modify any of this with custom CSS or overriding our default variables.
-                            It's also worth noting that just about any HTML can go within the
-                            <code>.accordion-body</code>, though the transition does limit overflow.
+                            <form action="{{ url_for('save', target=2) }}" method="post">
+                                <div class="mb-3">
+                                    <label for="InputLdapAddress" class="form-label">Ldap Url</label>
+                                    <input type="text" class="form-control" name="InputLdapAddress"
+                                           placeholder="ldap://0.0.0.0"
+                                           value="{{ request.form['InputLdapAddress'] or config_sections[2]['url'] }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="InputLdapBase" class="form-label">Ldap Base</label>
+                                    <input type="text" class="form-control" name="InputLdapBase"
+                                           placeholder="dc=example,dc=com"
+                                           value="{{ request.form['InputLdapBase'] or config_sections[2]['base'] }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="InputLdapFilter" class="form-label">Ldap Filter</label>
+                                    <input type="text" class="form-control" name="InputLdapFilter"
+                                           value="{{ request.form['InputLdapFilter'] or config_sections[2]['filter'] }}">
+                                </div>
+                                <button type="submit"
+                                        class="btn {% if session['check/2'] %} btn-success {% else %} btn-primary {% endif %}"
+                                        formaction="{{ url_for('check_connection', target=2) }}">Check connection
+                                </button>
+                                <button type="submit"
+                                        class="btn btn-primary {% if not session['check/2'] %} disabled {% endif %}">
+                                    Save
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading3">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        <button class="accordion-button {{ active_section(3, '', 'collapsed') }}" type="button"
+                                data-bs-toggle="{% if config_sections[2]['url'] %}collapse{% else %}disabled{% endif %}"
                                 data-bs-target="#accordionConfigCollapse3" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse3">
-                            Accordion Item #3
+                            Database Synchronization
+                            {% if not config_sections[2]['url'] %}
+                                <span class="ps-3 fas fa-lock"></span>
+                            {% endif %}
                         </button>
                     </h2>
-                    <div id="accordionConfigCollapse3" class="accordion-collapse collapse"
+                    <div id="accordionConfigCollapse3"
+                         class="accordion-collapse collapse {{ active_section(3, 'show', '') }}"
                          aria-labelledby="accordionConfigHeading3" data-bs-parent="#accordionConfig">
                         <div class="accordion-body">
-                            <strong>This is the third item's accordion body.</strong> It is hidden by default, until the
-                            collapse plugin adds the appropriate classes that we use to style each element. These
-                            classes control the overall appearance, as well as the showing and hiding via CSS
-                            transitions. You can modify any of this with custom CSS or overriding our default variables.
-                            It's also worth noting that just about any HTML can go within the
-                            <code>.accordion-body</code>, though the transition does limit overflow.
+                            <form method="POST">
+                                <div class="row mb-2">
+                                    <div class="col-3 pe-0">
+                                        <button type="submit" class="btn btn-primary w-100"
+                                                formaction="{{ url_for('sync_database', target=1) }}">Sync Proxmox Vms
+                                        </button>
+                                    </div>
+                                    <div class="col-4 ms-2 border border-secondary rounded-3">
+                                        <div class="row justify-content-between align-content-center h-100">
+                                            <div class="col-auto">
+                                                Proxmox Templates available:
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-secondary">{{ config_sections[3]['proxmox_templatecount'] or '0' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 ms-2 border border-secondary rounded-3">
+                                        <div class="row justify-content-between align-content-center h-100">
+                                            <div class="col-auto">
+                                                Last Proxmox Sync:
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-secondary"> {{ config_sections[3]['proxmox_syncdate'] or 'Never!' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-3 pe-0">
+                                        <button type="submit" class="btn btn-primary w-100"
+                                                formaction="{{ url_for('sync_database', target=2) }}">Sync Ldap Users
+                                        </button>
+                                    </div>
+                                    <div class="col-4 ms-2 border border-secondary rounded-3">
+                                        <div class="row justify-content-between align-content-center h-100">
+                                            <div class="col-auto">
+                                                Ldap Users available:
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-secondary"> {{ config_sections[3]['ldap_usercount'] or '0' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 ms-2 border border-secondary rounded-3">
+                                        <div class="row justify-content-between align-content-center h-100">
+                                            <div class="col-auto">
+                                                Last Ldap Sync:
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-secondary">  {{ config_sections[3]['ldap_syncdate'] or 'Never!' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="accordionConfigHeading4">
+                        <button class="accordion-button {{ active_section(4, '', 'collapsed') }}" type="button"
+                                data-bs-toggle="{% if config_sections[3].get('ldap_usercount') %}collapse{% else %}disabled{% endif %}"
+                                data-bs-target="#accordionConfigCollapse4" aria-expanded="false"
+                                aria-controls="accordionConfigCollapse4">
+                            User Permissions
+                            {% if not config_sections[3].get('ldap_usercount') %}
+                                <span class="ps-3 fas fa-lock"></span>
+                            {% endif %}
+                        </button>
+                    </h2>
+                    <div id="accordionConfigCollapse4"
+                         class="accordion-collapse collapse {{ active_section(4, 'show', '') }}"
+                         aria-labelledby="accordionConfigHeading4" data-bs-parent="#accordionConfig">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-12 col-md-5">
+                                    <form name="InputPermTypeForm" method="post">
+                                        <div class="form-label">Select user by</div>
+                                        <div class="mb-3">
+                                            <button type="submit" formaction="{{ url_for('set_permission_by', handle_type=1 ) }}"
+                                                    class="btn {% if session.get('config/setPermType') == 1 %} btn-primary {% else %} btn-outline-primary {% endif %}">
+                                                User Login
+                                            </button>
+                                            <button type="submit" formaction="{{ url_for('set_permission_by', handle_type=2 ) }}"
+                                                    class="btn {% if session.get('config/setPermType') == 2 %} btn-primary {% else %} btn-outline-primary {% endif %}">
+                                                User Name
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <form name="InputPerm" action="{{ url_for('set_permission') }}" method="post">
+                                        <div class="mb-3">
+                                            <label for="InputPermUser" class="form-label">Choose a user</label>
+                                            <input class="form-control {% if session.get('config/setPermType') %} disabled {% endif %}"
+                                                   list="InputPermUserOptions" name="InputPermUser" placeholder="Type to search...">
+                                            <datalist id="InputPermUserOptions">
+                                                {% if session.get('config/setPermType') == 1 %}
+                                                    {% for user in config_sections[4]['all_users'] %}
+                                                        <option value="{{ user['userID'] }}">
+                                                    {% endfor %}
+                                                {% elif session.get('config/setPermType') == 2 %}
+                                                    {% for user in config_sections[4]['all_users'] %}
+                                                        <option value="{{ user['fullname'] }}">
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </datalist>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="InputPermPerm" class="form-label">Choose Permission</label>
+                                            <select class="form-select" name="InputPermPerm" aria-label="Select Permission To apply">
+                                                <option value="0">Remove Permission</option>
+                                                <option value="2" selected>Teacher</option>
+                                                <option value="3">VM Maintainer</option>
+                                                <option value="4">Admin</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Set Permission</button>
+                                    </form>
+                                </div>
+                                <div class="col-12 col-md-7">
+                                    <div class="row pb-2">
+                                        <div class="col-auto">
+                                            <div class="btn-group" role="group" aria-label="User View control radio buttons">
+                                                <input type="radio" class="btn-check" name="radioGroup" id="configCarouselControl1"
+                                                       autocomplete="off" data-bs-target="#configCarousel" data-bs-slide-to="0" data-toggle="radioGroup">
+                                                <label class="btn btn-outline-primary" for="configCarouselControl1">Teachers</label>
+
+                                                <input type="radio" class="btn-check" name="radioGroup" id="configCarouselControl2"
+                                                       autocomplete="off" data-bs-target="#configCarousel" data-bs-slide-to="1" data-toggle="radioGroup">
+                                                <label class="btn btn-outline-primary" for="configCarouselControl2">VM Maintainers</label>
+
+                                                <input type="radio" class="btn-check" name="radioGroup" id="configCarouselControl3"
+                                                       autocomplete="off" data-bs-target="#configCarousel" data-bs-slide-to="2" data-toggle="radioGroup">
+                                                <label class="btn btn-outline-primary" for="configCarouselControl3">Admins</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div id="configCarousel" class="carousel carousel-dark slide" data-bs-interval="false" data-bs-ride="carousel">
+                                                <div class="carousel-inner">
+                                                    <div class="carousel-item active">
+                                                        <div class="list-group overflow-scroll"  style="height: 60vh">
+                                                            {% for user in config_sections[4]['teachers'] %}
+                                                                <li class="list-group-item">
+                                                                    <h5>{{ user['fullname'] }}</h5>
+                                                                    <small class="text-muted">({{ user['userID'] }})</small>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="carousel-item">
+                                                        <div class="list-group overflow-scroll"  style="height: 60vh">
+                                                            {% for user in config_sections[4]['maintainers'] %}
+                                                                <li class="list-group-item">
+                                                                    <h5>{{ user['fullname'] }}</h5>
+                                                                    <small class="text-muted">({{ user['userID'] }})</small>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="carousel-item">
+                                                        <div class="list-group overflow-scroll"  style="height: 60vh">
+                                                            {% for user in config_sections[4]['admins'] %}
+                                                                <li class="list-group-item">
+                                                                    <h5>{{ user['fullname'] }}</h5>
+                                                                    <small class="text-muted">({{ user['userID'] }})</small>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="accordionConfigHeading5">
+                        <button class="accordion-button {{ active_section(5, '', 'collapsed') }}" type="button"
+                                data-bs-toggle="{% if config_sections[4]['admins'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-target="#accordionConfigCollapse5" aria-expanded="false"
+                                aria-controls="accordionConfigCollapse5">
+                            Finish Configuration
+                            {% if not config_sections[4]['admins'] %}
+                                <span class="ps-3 fas fa-lock"></span>
+                            {% endif %}
+                        </button>
+                    </h2>
+                    <div id="accordionConfigCollapse5"
+                         class="accordion-collapse collapse {{ active_section(5, 'show', '') }}"
+                         aria-labelledby="accordionConfigHeading5" data-bs-parent="#accordionConfig">
+                        <div class="accordion-body">
+                            <form action="{{ url_for('save', target=5) }}" method="post">
+                                <div class="mb-3">
+                                    <label for="InputSECRETKEY" class="form-label">SECRET_KEY</label>
+                                    <textarea class="form-control" name="InputSECRETKEY" rows="5"
+                                    placeholder="f1b4adf39ec5b8e9f6b077c556763982f75ce89e305fd803cd03619ca0d6b0e09eb794cc77ee154da6dca85dc5845c9aae66e2e9e1c8eb88257273a3a5b56146a2d3f2bf52900fb2a001ee286d3c04067e01f9bc14bc794cbdbafefe0a92d7901518548b5d6a2c3947b143f63825b32141a78ee06075189d149225a23778cf4aaf77c3e70566508a1e1f3ffed01236c52231ad7350a1f678448b0ff76851509a"
+                                    >{{ request.form['InputSECRETKEY'] or config_sections[5]['SECRET_KEY'] }}</textarea>
+                                </div>
+                                <div class="row justify-content-between">
+                                    <div class="col-auto">
+                                        <input type="checkbox" class="btn-check" name="InputFirstRun" id="InputFirstRun"
+                                               autocomplete="off"
+                                                {% if request.form.get('InputFirstRun') == 'on' or config_sections[5]['first-run'] == 0 %}
+                                                   checked {% endif %}>
+                                        <label class="btn btn-outline-danger" for="InputFirstRun">Confirm and Lock this Configuration Page</label>
+                                        <button type="submit"
+                                                class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">
+                                            Save
+                                        </button>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if config_sections[5].get('first-run') == 0 and not config_sections[5]['configured'] %}
+                                            <div class="row align-content-center bg-warning rounded-3 h-100 me-1">
+                                                <div class="col-auto">
+                                                    Restart the Server to change mode into production!
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -133,15 +388,36 @@ I need somewhere to list all settings that i will be creating
         Sync ldap users (also syncs ldap realm in proxmox)
         Sync proxmox vmid's (this is automatic)
         Save
-        } SECTION 3
+        } SECTION 3 config database would have a user count and date last synced, in human format
         { locked unitl user_table has more than 0 entires
         modlist with a search bar (and a button to post a search)
         all users <=> teachers <=> VM Maitainers <=> Admins ( you )
         Save - locked until there is at least1 entry in admins
-        } USER PERMISSIONS
+        } USER PERMISSIONS config database is empty, we get an empty dict from view, and we mask it with a thing
         { locked unitl there is at least1 entry in admins in the database.
         SECRET_KEY - programmer note here commit this, and reload flask app somehow.
         ADMIN LOGIN to finish configuration mode
         FINISH APP SETUP (first-run) locked unitl this page is open logged in as admin user
         } SECTION 0
+
+        all users:
+        blah
+
+        Teachers
+        VM maintanace
+        Admins
+
+        sequential
+        all <> teacher <> maintaner <> admin
+
+
+        top down
+        all [select]
+        set as dropdown
+        Teacher Maintaner admin
+
+
+
+
+
 #}
