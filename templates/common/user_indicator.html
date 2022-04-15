@@ -1,3 +1,40 @@
-<div class="col-auto bg-primary rounded-3 p-2">
-    LOGGED IN AS USERNAME
+<div class="col-auto p-0">
+    <div class="dropdown h-100">
+        {% if not session.get('login') %}  {# Brak Użytkownika #}
+            <button class="btn btn-dark dropdown-toggle h-100" type="button" id="userIndicatorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fas fa-user-slash pe-2"></span>
+                Nie zalogowany
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userIndicatorDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('login.login') }}">Zaloguj</a></li>
+            </ul>
+        {% elif session.get('permLevel') == 4 %} {# ADMIN #}
+            <button class="btn btn-primary dropdown-toggle h-100" type="button" id="userIndicatorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fas fa-user-cog pe-2"></span>
+                {{ session['login'] }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userIndicatorDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('config.configuration') }}">Config</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('login.logout') }}">Wyloguj</a></li>
+            </ul>
+        {% else %} {# Normal USER #} %}
+            <button class="btn btn-dark dropdown-toggle h-100" type="button" id="userIndicatorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fas fa-user-slash pe-2"></span>
+                Nie zalogowany
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userIndicatorDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('login.login') }}">Zaloguj</a></li>
+            </ul>
+
+        {% endif %}
+    </div>
+{#    <button class="h-100 btn {% if session.get('login') %} btn-primary {% else %} btn-dark{% endif %} rounded-3">#}
+{#        {% if session.get('login') %}#}
+{#            <span class="fas fa-user"></span>#}
+{#            {{ session['login'] }}#}
+{#        {% else %}#}
+{##}
+{##}
+{#        {% endif %}#}
+{#    </button>#}
 </div>

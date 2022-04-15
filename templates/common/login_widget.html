@@ -1,0 +1,26 @@
+
+<div class="row justify-content-center align-content-center h-100">
+    <div class="col-auto bg-light border rounded-3 pt-3">
+        <form action="{{ url_for('login.login') }}" method="post">
+            <div class="mb-3">
+                <div class="mb-3">
+                    <label for="InputAppLogin" class="form-label">Login</label>
+                    <input type="text" class="form-control" name="InputAppLogin" placeholder="username">
+                </div>
+                <div class="mb-3">
+                    <label for="InputAppPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="InputAppPassword" placeholder="password">
+                </div>
+                <div class="row justify-content-between">
+                    <div class="col-auto">
+{#                        <small class="text-muted"></small>#}
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Log in</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
