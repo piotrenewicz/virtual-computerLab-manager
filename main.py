@@ -1,58 +1,11 @@
-import sqlite3
+import utils as u
 from flask import Flask, render_template, request, url_for, flash, redirect, session
 from werkzeug.exceptions import abort
-from proxmoxer import ProxmoxAPI
-
-
-def one_row_fix(row: (sqlite3.Row, None)):
-    if row is None:
-        return None
-    if len(row.keys()) == 1:
-        return row[0]
-    return dict(row)
-
-
-def get_config_section(section: int):
-    conn = get_db_connection()
-    rowset = conn.cursor().execute('select option, value from config where section == ?', (section,)).fetchall()
-    config_section = {row['option']: row['value'] for row in rowset}
-    conn.close()
-    return config_section
-
-
-def get_config_value(option: str):
-    conn = get_db_connection()
-    value = one_row_fix(conn.cursor().execute('select value from config where option == ?', (option,)).fetchone())
-    conn.close()
-    return value
-
-
-def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def check_configured():
-    try:
-        first_run = get_config_value('first-run')
-    except sqlite3.OperationalError:
-        first_run = None
-    if first_run is None:
-        import init_database
-        init_database.init()
-        return False
-    elif first_run == 1:
-        return False
-    elif first_run == 0:
-        return True
-    else:
-        raise Exception("Non-binary first-run value!")
 
 
 app = Flask(__name__)
-configured = check_configured()
-app.config['SECRET_KEY'] = get_config_value('SECRET_KEY') or "DEFAULT SECRET KEY. NOT VERY SECRET"
+configured = u.check_configured()
+app.config['SECRET_KEY'] = u.get_config_value('SECRET_KEY') or "DEFAULT SECRET KEY. NOT VERY SECRET"
 
 
 @app.context_processor
@@ -60,11 +13,17 @@ def inject_default_context():
     return dict(
         toast_category_map = {
             'error': 'bg-danger bg-opacity-75 text-light',
-            'info': 'bg-info',
-            'success': 'bg-success bg-opacity-75 text-light'
+            'info': 'bg-warning bg-opacity-75',
+            'success': 'bg-success bg-opacity-75 text-light',
         },
 
     )
+
+@app.before_request
+def check_method():
+    if request.method not in ('POST', 'GET'):
+        request.method = 'POST' if request.method.endswith('POST') else 'GET'
+
 
 @app.route('/')
 def index():
@@ -77,74 +36,94 @@ def index():
 
 
 @app.route('/config', methods=('GET', 'POST'))
-def configuration(**kwargs):
+def configuration():
     if configured:
         #require login, to protect the settings from tampering
         # we can't login before configured bc ldap is not set.
+        # deleagate this check to app.before_request
         pass
 
-    config_sections = [get_config_section(section=section_number) for section_number in range(4)]
+    # print(request.form)
+    with u.db_session() as cursor:
+        config_sections = [u.get_config_section(section=section_number, cursor=cursor) for section_number in range(6)]
+        config_sections[4]['all_users'] = u.get_users(None, cursor=cursor)
+        config_sections[4]['teachers'] = u.get_users(2, cursor=cursor)
+        config_sections[4]['maintainers'] = u.get_users(3, cursor=cursor)
+        config_sections[4]['admins'] = u.get_users(4, cursor=cursor)
+    config_sections[5]['configured'] = configured
 
-    return render_template('config.html', config_sections=config_sections, more_context=kwargs)
-
-
-def form_reader(section):
-    if section == 1:
-        return {
-            'host': request.form.get('InputProxmoxAddress'),
-            'user': request.form.get('InputProxmoxBotUser'),
-            'password': request.form.get('InputProxmoxBotPass'),
-            'verify_ssl': False if request.form.get('InputProxmoxSSL') is None else True
-        }
-    elif section == 2:
-        return {}
-
-
-def check_proxmox(kwargs):
-    try:
-        ProxmoxAPI(**kwargs)
-    except Exception as e:
-        flash(e.__repr__(), 'error')
-        return False
-    return True
-
-
-def check_ldap(kwargs):
-    return False
-
-
-def check_both(target):
-    kwargs = form_reader(target)
-    if target == 1:
-        return check_proxmox(kwargs)
-    elif target == 2:
-        return check_ldap(kwargs)
+    return render_template('config.html', config_sections=config_sections, active_section=u.active_section)
 
 
 @app.route('/config/check_connection/<int:target>', methods=('POST',))
 def check_connection(target):
-    session['check/'+str(target)] = check_both(target)
+    session['config/active_section'] = target
+    session['check/'+str(target)] = u.validate_connection_params(target)
     return redirect(request.referrer, code=307)
 
 
 @app.route('/config/save/<int:target>', methods=('POST',))
 def save(target):
-    if check_both(target):
-        conn = get_db_connection()
-        cur = conn.cursor()
-        data = [(option, target, value) for option, value in form_reader(target).items()]
-        cur.executemany("replace into config(option, section, value) VALUES (?, ?, ?)", data)
-        conn.commit()
-        conn.close()
+    if u.validate_connection_params(target):
+        data = [(option, target, value) for option, value in u.form_reader(target).items()]
+        with u.db_session() as cursor:
+            cursor.executemany("replace into config(option, section, value) VALUES (?, ?, ?)", data)
         flash("Settings saved!", 'success')
+        session['config/active_section'] = target + 1
     else:
         session['check/'+str(target)] = False
+        session['config/active_section'] = target
+    return redirect(request.referrer, code=307)
+
+@app.route('/config/sync/<int:target>', methods=('POST',))
+def sync_database(target):
+    session['config/active_section'] = 3
+    if target == 1:
+        # proxmox_sync()
+        pass
+    elif target == 2:
+        u.ldap_sync()
+
+    return redirect(request.referrer, code=307)
+
+@app.route('/config/set_permission', methods=('POST',))
+def set_permission():
+    session['config/active_section'] = 4
+    data = u.form_reader(4)
+    print(data)
+    with u.db_session() as cursror:
+        if session['config/setPermType'] == 2:
+            cursror.execute('select userID from user_table where fullname = ?', (data['userID'],))
+            data['userID'] = u.one_row_fix(cursror.fetchone())
+
+        if data['perm'] == 0:
+            cursror.execute('select count(groupID) from group_content where userID = ?', (data['userID'],))
+            if u.one_row_fix(cursror.fetchone()) > 0:
+                data['perm'] = 1
+
+        cursror.execute('update user_table set userPermission = ? where userID = ?', (data['perm'], data['userID']))
+
+    if data['perm']:
+        # TODO call proxmox to enable account data['userID']
+        pass
+    else:
+        # TODO call proxmox to disable account data['userID']
+        pass
+
+    return redirect(request.referrer, code=307)
+
+@app.route('/config/set_permission/<int:handle_type>', methods=('POST',))
+def set_permission_by(handle_type):
+    session['config/active_section'] = 4
+    session['config/setPermType'] = handle_type
     return redirect(request.referrer, code=307)
 
 
 @app.route('/login')
 def login():
     return render_template('login.html')
+
+
 
 
 # when shipping remember to put a block here, we don't want to allow production use of development mode
