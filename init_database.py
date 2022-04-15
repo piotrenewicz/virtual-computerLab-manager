@@ -7,7 +7,7 @@ def init():
         connection.executescript(f.read())
 
     cur = connection.cursor()
-    cur.execute("INSERT INTO config(option, section, value) VALUES (?, ?, ?)", ("first-run", 0, 1))
+    cur.execute("INSERT INTO config(option, section, value) VALUES (?, ?, ?)", ("first-run", 5, 1))
     connection.commit()
     connection.close()
 

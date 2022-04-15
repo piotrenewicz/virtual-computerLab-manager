@@ -79,7 +79,7 @@ CREATE TABLE vmid_table(
 CREATE TABLE user_table(
     userID TEXT NOT NUll PRIMARY KEY,
     userPermission INTEGER DEFAULT 0,
-    full_name TEXT NOT NULL
+    fullname TEXT NOT NULL
 ) without rowid;
 -- proxmox uses a string for userID,
 -- ldap provides unique strings for username,
