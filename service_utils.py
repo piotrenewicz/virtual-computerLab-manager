@@ -15,6 +15,18 @@ def get_ldap_users(kwargs:(None, dict) = None, clean=True):
     return result
 
 
+def attempt_ldap_login(fullname, password, ldap_params=get_config_section(2)):
+    ldap_conn = ldap.initialize(ldap_params['url'])
+    ldap_conn.set_option(ldap.OPT_REFERRALS, 0)
+    try:
+        ldap_conn.simple_bind_s(''.join(('cn=', fullname, ',', ldap_params['base'])), password)
+        result = True
+    except (ldap.INVALID_CREDENTIALS, ldap.UNWILLING_TO_PERFORM):
+        result = False
+    finally:
+        ldap_conn.unbind_s()
+    return result
+
 
 @with_database
 def ldap_sync(cursor: sqlite3.Cursor):

@@ -1,7 +1,6 @@
 from service_utils import *
 from flask import session, request, flash
-
-
+configured = None
 
 def check_configured():
     try:
@@ -58,8 +57,13 @@ def form_reader(section):
         }
     elif section == 5:
         return {
-            'SECRET_KEY': request.form.get('SECRET_KEY'),
+            'SECRET_KEY': request.form.get('InputSECRETKEY'),
             'first-run': 0 if request.form.get('InputFirstRun') else 1
+        }
+    elif section == 'login':
+        return {
+            'login': request.form.get('InputAppLogin'),
+            'pass': request.form.get('InputAppPassword')
         }
 
 
@@ -91,3 +95,33 @@ def validate_connection_params(target):
         return check_proxmox(kwargs)
     elif target == 2:
         return check_ldap(kwargs)
+
+
+def perform_login():
+    data = form_reader('login')
+
+    with db_session() as cursor:
+        cursor.execute('select userPermission from user_table where userID = ?', (data['login'],))
+        perm = one_row_fix(cursor.fetchone())
+        cursor.execute('select fullname from user_table where userID = ?', (data['login'],))
+        cn = one_row_fix(cursor.fetchone())
+        ldap_params = get_config_section(2, cursor=cursor)
+
+    if perm is None:
+        flash('Podany [login] i/lub hasło są nieprawidłowe', 'info')
+        return False
+
+    if perm in (0, 1):
+        flash('Brak Uprawnień, Odmowa Dostępu', 'error')
+        return False
+
+    if perm in (2, 3, 4) and attempt_ldap_login(cn, data['pass'], ldap_params=ldap_params):
+        flash('logged in', 'success')
+        session['login'] = data['login']
+        session['permLevel'] = perm
+        return True
+
+    flash('Podany login i/lub [hasło] są nieprawidłowe', 'info')
+    return False
+
+
