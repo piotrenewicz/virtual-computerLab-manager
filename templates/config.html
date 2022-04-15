@@ -24,7 +24,7 @@
                          class="accordion-collapse collapse {{ active_section(1, 'show', '') }}"
                          aria-labelledby="accordionConfigHeading1" data-bs-parent="#accordionConfig">
                         <div class="accordion-body">
-                            <form action="{{ url_for('save', target=1) }}" method="post">
+                            <form action="{{ url_for('config.save', target=1) }}" method="post">
                                 <div class="mb-3">
                                     <label for="InputProxmoxAddress" class="form-label">Proxmox Address</label>
                                     <input type="text" class="form-control" name="InputProxmoxAddress"
@@ -50,7 +50,7 @@
                                 </div>
                                 <button type="submit"
                                         class="btn {% if session['check/1'] %} btn-success {% else %} btn-primary {% endif %}"
-                                        formaction="{{ url_for('check_connection', target=1) }}">Check connection
+                                        formaction="{{ url_for('config.check_connection', target=1) }}">Check connection
                                 </button>
                                 <button type="submit"
                                         class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">
@@ -68,7 +68,8 @@
                                 aria-controls="accordionConfigCollapse2">
                             Ldap Settings
                             {% if not config_sections[1]['host'] %}
-                                <span class="ps-3 fas fa-lock"></span>
+                                <span class="ps-3 pe-1 fas fa-lock"></span>
+                                <small class="text-muted">Set up a Proxmox connection, to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
@@ -76,7 +77,7 @@
                          class="accordion-collapse collapse {{ active_section(2, 'show', '') }}"
                          aria-labelledby="accordionConfigHeading2" data-bs-parent="#accordionConfig">
                         <div class="accordion-body">
-                            <form action="{{ url_for('save', target=2) }}" method="post">
+                            <form action="{{ url_for('config.save', target=2) }}" method="post">
                                 <div class="mb-3">
                                     <label for="InputLdapAddress" class="form-label">Ldap Url</label>
                                     <input type="text" class="form-control" name="InputLdapAddress"
@@ -91,12 +92,12 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="InputLdapFilter" class="form-label">Ldap Filter</label>
-                                    <input type="text" class="form-control" name="InputLdapFilter"
+                                    <input type="text" class="form-control" name="InputLdapFilter" placeholder="(objectClass=posixAccount)"
                                            value="{{ request.form['InputLdapFilter'] or config_sections[2]['filter'] }}">
                                 </div>
                                 <button type="submit"
                                         class="btn {% if session['check/2'] %} btn-success {% else %} btn-primary {% endif %}"
-                                        formaction="{{ url_for('check_connection', target=2) }}">Check connection
+                                        formaction="{{ url_for('config.check_connection', target=2) }}">Check connection
                                 </button>
                                 <button type="submit"
                                         class="btn btn-primary {% if not session['check/2'] %} disabled {% endif %}">
@@ -114,7 +115,8 @@
                                 aria-controls="accordionConfigCollapse3">
                             Database Synchronization
                             {% if not config_sections[2]['url'] %}
-                                <span class="ps-3 fas fa-lock"></span>
+                                <span class="ps-3 pe-1 fas fa-lock"></span>
+                                <small class="text-muted">Set up a Ldap connection, to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
@@ -126,7 +128,7 @@
                                 <div class="row mb-2">
                                     <div class="col-3 pe-0">
                                         <button type="submit" class="btn btn-primary w-100"
-                                                formaction="{{ url_for('sync_database', target=1) }}">Sync Proxmox Vms
+                                                formaction="{{ url_for('config.sync_database', target=1) }}">Sync Proxmox Vms
                                         </button>
                                     </div>
                                     <div class="col-4 ms-2 border border-secondary rounded-3">
@@ -153,7 +155,7 @@
                                 <div class="row mb-2">
                                     <div class="col-3 pe-0">
                                         <button type="submit" class="btn btn-primary w-100"
-                                                formaction="{{ url_for('sync_database', target=2) }}">Sync Ldap Users
+                                                formaction="{{ url_for('config.sync_database', target=2) }}">Sync Ldap Users
                                         </button>
                                     </div>
                                     <div class="col-4 ms-2 border border-secondary rounded-3">
@@ -189,7 +191,8 @@
                                 aria-controls="accordionConfigCollapse4">
                             User Permissions
                             {% if not config_sections[3].get('ldap_usercount') %}
-                                <span class="ps-3 fas fa-lock"></span>
+                                <span class="ps-3 pe-1 fas fa-lock"></span>
+                                <small class="text-muted">Get at least 1 user in the database, to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
@@ -202,20 +205,20 @@
                                     <form name="InputPermTypeForm" method="post">
                                         <div class="form-label">Select user by</div>
                                         <div class="mb-3">
-                                            <button type="submit" formaction="{{ url_for('set_permission_by', handle_type=1 ) }}"
+                                            <button type="submit" formaction="{{ url_for('config.set_permission_by', handle_type=1 ) }}"
                                                     class="btn {% if session.get('config/setPermType') == 1 %} btn-primary {% else %} btn-outline-primary {% endif %}">
                                                 User Login
                                             </button>
-                                            <button type="submit" formaction="{{ url_for('set_permission_by', handle_type=2 ) }}"
+                                            <button type="submit" formaction="{{ url_for('config.set_permission_by', handle_type=2 ) }}"
                                                     class="btn {% if session.get('config/setPermType') == 2 %} btn-primary {% else %} btn-outline-primary {% endif %}">
                                                 User Name
                                             </button>
                                         </div>
                                     </form>
-                                    <form name="InputPerm" action="{{ url_for('set_permission') }}" method="post">
+                                    <form name="InputPerm" action="{{ url_for('config.set_permission') }}" method="post">
                                         <div class="mb-3">
                                             <label for="InputPermUser" class="form-label">Choose a user</label>
-                                            <input class="form-control {% if session.get('config/setPermType') %} disabled {% endif %}"
+                                            <input class="form-control"
                                                    list="InputPermUserOptions" name="InputPermUser" placeholder="Type to search...">
                                             <datalist id="InputPermUserOptions">
                                                 {% if session.get('config/setPermType') == 1 %}
@@ -238,7 +241,7 @@
                                                 <option value="4">Admin</option>
                                             </select>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Set Permission</button>
+                                        <button type="submit" class="btn btn-primary {% if not session.get('config/setPermType') %} disabled {% endif %}">Set Permission</button>
                                     </form>
                                 </div>
                                 <div class="col-12 col-md-7">
@@ -305,12 +308,13 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading5">
                         <button class="accordion-button {{ active_section(5, '', 'collapsed') }}" type="button"
-                                data-bs-toggle="{% if config_sections[4]['admins'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-toggle="{% if session.get('permLevel') == 4 %}collapse{% else %}disabled{% endif %}"
                                 data-bs-target="#accordionConfigCollapse5" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse5">
                             Finish Configuration
-                            {% if not config_sections[4]['admins'] %}
-                                <span class="ps-3 fas fa-lock"></span>
+                            {% if not session.get('permLevel') == 4 %}
+                                <span class="ps-3 pe-1 fas fa-lock"></span>
+                                <small class="text-muted">Login as Admin to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
@@ -318,36 +322,27 @@
                          class="accordion-collapse collapse {{ active_section(5, 'show', '') }}"
                          aria-labelledby="accordionConfigHeading5" data-bs-parent="#accordionConfig">
                         <div class="accordion-body">
-                            <form action="{{ url_for('save', target=5) }}" method="post">
-                                <div class="mb-3">
-                                    <label for="InputSECRETKEY" class="form-label">SECRET_KEY</label>
-                                    <textarea class="form-control" name="InputSECRETKEY" rows="5"
-                                    placeholder="f1b4adf39ec5b8e9f6b077c556763982f75ce89e305fd803cd03619ca0d6b0e09eb794cc77ee154da6dca85dc5845c9aae66e2e9e1c8eb88257273a3a5b56146a2d3f2bf52900fb2a001ee286d3c04067e01f9bc14bc794cbdbafefe0a92d7901518548b5d6a2c3947b143f63825b32141a78ee06075189d149225a23778cf4aaf77c3e70566508a1e1f3ffed01236c52231ad7350a1f678448b0ff76851509a"
-                                    >{{ request.form['InputSECRETKEY'] or config_sections[5]['SECRET_KEY'] }}</textarea>
-                                </div>
-                                <div class="row justify-content-between">
-                                    <div class="col-auto">
-                                        <input type="checkbox" class="btn-check" name="InputFirstRun" id="InputFirstRun"
-                                               autocomplete="off"
-                                                {% if request.form.get('InputFirstRun') == 'on' or config_sections[5]['first-run'] == 0 %}
-                                                   checked {% endif %}>
-                                        <label class="btn btn-outline-danger" for="InputFirstRun">Confirm and Lock this Configuration Page</label>
-                                        <button type="submit"
-                                                class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">
-                                            Save
-                                        </button>
+                            {% if session.get('permLevel') == 4 %}
+                                <form action="{{ url_for('config.confirm_and_lock') }}" method="post">
+                                    <div class="mb-3">
+                                        <label for="InputSECRETKEY" class="form-label">SECRET_KEY</label>
+                                        <textarea class="form-control" name="InputSECRETKEY" rows="5"
+                                            placeholder="Put a long string of random characters here, this will be used for encrypting the user session, so that it can't be tampered with"
+                                        ></textarea>
                                     </div>
-                                    <div class="col-auto">
-                                        {% if config_sections[5].get('first-run') == 0 and not config_sections[5]['configured'] %}
-                                            <div class="row align-content-center bg-warning rounded-3 h-100 me-1">
-                                                <div class="col-auto">
-                                                    Restart the Server to change mode into production!
-                                                </div>
-                                            </div>
-                                        {% endif %}
+                                    <div class="row justify-content-between">
+                                        <div class="col-auto">
+                                            <input type="checkbox" class="btn-check" name="InputFirstRun" id="InputFirstRun"
+                                                   autocomplete="off" {% if config_sections[5]['first-run'] == 0 %} checked {% endif %}>
+                                            <label class="btn btn-outline-danger" for="InputFirstRun">Confirm and Lock this Configuration Page</label>
+                                            <button type="submit"
+                                                    class="btn btn-primary {% if not session['check/1'] %} disabled {% endif %}">
+                                                Save
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            </form>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
