@@ -134,3 +134,91 @@ def shutdown_clones(clone_list: list, block=False, *, proxmox: ProxmoxResource):
 
 def user_enable(userid, realm, enable = True, *, proxmox: ProxmoxResource):
     proxmox.access.users(userid+"@"+realm).put(enable=int(enable))
+
+
+@with_database
+def sync_proxmox(proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
+    current_vms = []
+    for found_node in proxmox.nodes.get():
+        node_name = found_node['node']
+        for found_vm in proxmox.nodes(node_name).qemu.get():
+            current_vms.append((found_vm['vmid'], found_vm.get('template', 0), node_name))
+
+    cursor.execute('Create temp table vm_sync(vmid INTEGER PRIMARY KEY, type INTEGER, node TEXT)without rowid;')
+    cursor.executemany('insert into vm_sync(vmid, type, node) VALUES (?, ?, ?)', current_vms)
+
+    # step1 compare type 0 with db types 0,
+    #       if missing in current, remove (with manual 1:1 cascading into clone_table)
+    cursor.execute('''
+        delete from clone_table
+        where cloneID = (
+            select vmid from vmid_table
+            where type = 0 and vmid not in (
+                select vmid from vm_sync where type = 0
+            )
+        );
+    ''')
+    cursor.execute('''
+        delete from vmid_table
+        where type = 0 and vmid not in (
+            select vmid from vm_sync where type = 0
+        )
+    ''')
+
+    # step2 compare type 1 with db type 1,
+    #       if not found, remove cascade delete clones and template (call template remove, expect KeyError on proxmox call to remove template)
+    cursor.execute('''
+        select vmid, node from vmid_table
+        where type = 1 and vmid not in (
+            select vmid from vm_sync where type = 1
+        )
+    ''')
+    remove_templates(cursor.fetchall(), inform_proxmox=False, proxmox=proxmox, cursor=cursor)
+
+    # step1 compare type 0 with db types 0,
+    #       if found as any type, but node doesn't match update node, but preserve type.
+    # step2 compare type 1 with db type 1,
+    #       if node doesn't match update,
+    cursor.execute('''
+        update vmid_table
+        set node = (select node from vm_sync where vmid = vmid_table.vmid)
+        where node <> (select node from vm_sync where vmid = vmid_table.vmid)
+    ''')
+
+    # step2 compare type 1 with db type 1,
+    #       if new add as type 1, insert add (in current data population design, collision here is impossible)
+    cursor.execute('''
+        insert into vmid_table(vmid, type, node) 
+            select vmid, type, node from vm_sync
+            where type = 1 and vmid not in (
+                select vmid from vmid_table
+            )
+    ''')
+    cursor.execute('drop table vm_sync')
+
+    cursor.execute(
+        'replace into config(option, section, value) values ("proxmox_templatecount", 3, (select count(vmid) from vmid_table where type = 1))')
+    cursor.execute('replace into config(option, section, value) values ("proxmox_syncdate", 3, CURRENT_TIMESTAMP)')
+
+@with_database
+def remove_templates(template_list: list, inform_proxmox=True, *, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
+    cursor.execute('Create temp table template_removal(templateID, node);')
+    cursor.executemany('insert into template_removal(templateID, node) VALUES (?, ?)',
+                       [(template['vmid'], template['node']) for template in template_list])
+    cursor.execute('''
+        select vt.vmid, vt.node 
+        from vmid_table vt inner join (
+            clone_table ct inner join (
+                allocation_table at inner join template_removal tr
+                on at.templateID = tr.templateID
+            ) sq on ct.allocationID=sq.allocationID
+        ) sq2 on vt.vmid=sq2.cloneID
+    ''')  # as fun as this is, i bet the final version will get atomized to the point where any joining is unthinkable
+    remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
+
+    if inform_proxmox:
+        for template in template_list:
+            proxmox.nodes(template['node']).qemu(template['vmid']).delete()
+
+    cursor.execute('delete from vmid_table where vmid = (select templateID from template_removal);')
+    cursor.execute('drop table template_removal;')

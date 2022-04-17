@@ -41,7 +41,9 @@ def sync_database(target):
     session['config/active_section'] = 3
     match target:
         case 1: u.ldap_sync()
-        case 2: pass# u.proxmox_sync()
+        case 2:
+            with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
+                u.sync_proxmox(cursor=cursor, proxmox=proxmox)
 
     return redirect(request.referrer, code=307)
 
