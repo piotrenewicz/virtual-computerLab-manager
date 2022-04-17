@@ -20,8 +20,7 @@
 -- group_table: (groupID) -- groupName
 -- group_content (userID, groupID)
 -- allocation_table: (allocationID), groupID, allocationName, templateID
--- vmid_table: (vmid), type
--- Session_table: (sessionHash) -- login date -- userID
+-- vmid_table: (vmid), type, node
 -- config: (option) -- section -- value
 
 
@@ -53,7 +52,6 @@
 -- https://pve.proxmox.com/pve-docs/api-viewer/#/cluster/nextid
 -- use this proxmox endpoint to get next vmid when creating clones
 
-drop table if exists session_table;
 drop table if exists clone_table;
 drop table if exists allocation_table;
 drop table if exists group_content;
@@ -70,7 +68,8 @@ create table config(
 
 CREATE TABLE vmid_table(
     vmid INTEGER NOT NULL PRIMARY KEY,
-    type INTEGER DEFAULT 0
+    type INTEGER DEFAULT 0,
+    node TEXT
 ) without rowid;
 -- type 0 is reserved vm created manually through proxmox UI
 -- type 1 is a template found while querying proxmox api
@@ -109,11 +108,6 @@ create table clone_table(
     allocationID INTEGER NOT NULL REFERENCES allocation_table(allocationID) ON DELETE RESTRICT
 ) without rowid;
 
-create table session_table(
-    seshHash TEXT PRIMARY KEY,
-    loginDate INTEGER NOT NULL DEFAULT (strftime('%s')),
-    userID TEXT NOT NULL REFERENCES user_table(userID) on delete cascade
-);
 
 -- maybe delete restrict, will throw error, that can be read to
 -- handle removing recursively.. ask forgiveness ftw!
