@@ -130,3 +130,7 @@ def shutdown_clones(clone_list: list, block=False, *, proxmox: ProxmoxResource):
                 if clone_link.status.current.get()['status'] == 'running':  # when clones are still running
                     clone_link.status.shutdown.post()  # order shutdown again
                     done = False  # and lose hope that we are done already.
+
+
+def user_enable(userid, enable = True, *, proxmox: ProxmoxResource):
+    proxmox.access.users(userid).put(enable=int(enable))

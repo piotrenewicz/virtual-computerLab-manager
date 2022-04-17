@@ -62,12 +62,8 @@ def set_permission():
 
         cursror.execute('update user_table set userPermission = ? where userID = ?', (data['perm'], data['userID']))
 
-    if data['perm']:
-        # TODO call proxmox to enable account data['userID']
-        pass
-    else:
-        # TODO call proxmox to disable account data['userID']
-        pass
+        with u.proxapi_session(cursor=cursror) as proxmox:
+            u.user_enable(data['userID'], data['perm'] > 0, proxmox=proxmox)
 
     return redirect(request.referrer, code=307)
 
