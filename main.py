@@ -1,3 +1,5 @@
+import requests.exceptions
+
 import utils as u
 from flask import Flask, render_template, request, url_for, redirect, session, flash
 from subviews.configview import config_app
@@ -49,6 +51,13 @@ def index():
     # overview dashboard idk, app
 
     return render_template("base.html")
+
+
+@app.errorhandler(requests.exceptions.RequestException)
+def handle_proxmox_errors(error):
+    flash(error.__repr__(), 'error')
+    return redirect(request.referrer)
+
 
 
 # when shipping remember to put a block here, we don't want to allow production use of development mode
