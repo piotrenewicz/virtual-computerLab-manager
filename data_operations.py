@@ -15,15 +15,14 @@ class db_session(object):
         self.conn.close()
 
 
-def with_database(funciton):
+def with_database(function):
     def wrapped(*args, **kwargs):
-        if not 'cursor' in kwargs or type(kwargs['cursor']) != sqlite3.Cursor:
-            with db_session() as cursor:
-                result = funciton(*args, **kwargs, cursor=cursor)
-        else:
-            result = funciton(*args, **kwargs)
-        return result
+        if type(kwargs.get('cursor')) == sqlite3.Cursor:
+            return function(*args, **kwargs)
 
+        with db_session() as cursor:
+            result = function(*args, **kwargs, cursor=cursor)
+        return result
     return wrapped
 
 

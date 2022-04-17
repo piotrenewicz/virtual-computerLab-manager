@@ -5,7 +5,11 @@ from subviews.loginview import login_app
 
 app = Flask(__name__)
 u.configured = u.check_configured()
-app.config['SECRET_KEY'] = u.get_config_value('SECRET_KEY') or "DEFAULT SECRET KEY. NOT VERY SECRET"
+
+app.config.update(
+    SECRET_KEY=u.get_config_value('SECRET_KEY') or "DEFAULT SECRET KEY. NOT VERY SECRET",
+    # SESSION_COOKIE_SECURE=True,  # uncomment this line in production with https to ensure sessions can't get leaked
+)
 
 app.register_blueprint(config_app)
 app.register_blueprint(login_app)

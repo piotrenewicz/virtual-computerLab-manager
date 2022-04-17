@@ -5,13 +5,6 @@ config_app = Blueprint('config', __name__, template_folder='templates')
 
 @config_app.route('/config', methods=('GET', 'POST'))
 def configuration():
-    if u.configured:
-        #require login, to protect the settings from tampering
-        # we can't login before configured bc ldap is not set.
-        # deleagate this check to config_page.before_request
-        pass
-
-    # print(request.form)
     with u.db_session() as cursor:
         config_sections = [u.get_config_section(section=section_number, cursor=cursor) for section_number in range(6)]
         config_sections[4]['all_users'] = u.get_users(None, cursor=cursor)

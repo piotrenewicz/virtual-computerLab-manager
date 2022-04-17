@@ -18,23 +18,14 @@
                 <li><a class="dropdown-item" href="{{ url_for('login.logout') }}">Wyloguj</a></li>
             </ul>
         {% else %} {# Normal USER #} %}
-            <button class="btn btn-dark dropdown-toggle h-100" type="button" id="userIndicatorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="fas fa-user-slash pe-2"></span>
-                Nie zalogowany
+            <button class="btn btn-primary dropdown-toggle h-100" type="button" id="userIndicatorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fas fa-user pe-2"></span>
+                {{ session['login'] }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userIndicatorDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('login.login') }}">Zaloguj</a></li>
+{#                <li><a class="dropdown-item" href="{{ url_for('config.configuration') }}">Config</a></li>#}
+                <li><a class="dropdown-item" href="{{ url_for('login.logout') }}">Wyloguj</a></li>
             </ul>
-
         {% endif %}
     </div>
-{#    <button class="h-100 btn {% if session.get('login') %} btn-primary {% else %} btn-dark{% endif %} rounded-3">#}
-{#        {% if session.get('login') %}#}
-{#            <span class="fas fa-user"></span>#}
-{#            {{ session['login'] }}#}
-{#        {% else %}#}
-{##}
-{##}
-{#        {% endif %}#}
-{#    </button>#}
 </div>
