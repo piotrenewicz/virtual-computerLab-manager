@@ -6,12 +6,17 @@ class db_session(object):
 
     def __enter__(self):
         self.conn = sqlite3.connect(self.filename)
+        self.conn.isolation_level = None
         self.conn.row_factory = sqlite3.Row
         self.cursor = self.conn.cursor()
+        self.cursor.execute("begin")
         return self.cursor
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.conn.commit()
+        if exc_type is None:
+            self.cursor.execute("commit")
+        else:
+            self.cursor.execute("rollback")
         self.conn.close()
 
 
