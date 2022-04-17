@@ -50,7 +50,7 @@ def form_reader(section):
             }
         case 4: return {
                 'userID': request.form.get('InputPermUser'),
-                'perm': request.form.get('InputPermPerm')
+                'perm': int(request.form.get('InputPermPerm'))
             }
         case 5: return {
                 'SECRET_KEY': request.form.get('InputSECRETKEY'),
