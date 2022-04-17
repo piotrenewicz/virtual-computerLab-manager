@@ -44,8 +44,8 @@ def form_reader(section):
             }
         case 2: return {
                 'host': request.form.get('InputProxmoxAddress'),
-                'user': request.form.get('InputProxmoxBotUser'),
-                'password': request.form.get('InputProxmoxBotPass'),
+                'user': request.form.get('InputProxmoxUser'),
+                'password': request.form.get('InputProxmoxPass'),
                 'verify_ssl': 0 if request.form.get('InputProxmoxSSL') is None else 1
             }
         case 4: return {

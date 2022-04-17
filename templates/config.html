@@ -84,15 +84,15 @@
                                            value="{{ request.form['InputProxmoxAddress'] or config_sections[2]['host'] }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="InputProxmoxBotUser" class="form-label">Proxmox Bot Login</label>
-                                    <input type="text" class="form-control" name="InputProxmoxBotUser"
+                                    <label for="InputProxmoxUser" class="form-label">Proxmox Login</label>
+                                    <input type="text" class="form-control" name="InputProxmoxUser"
                                            placeholder="username@realm"
-                                           value="{{ request.form['InputProxmoxBotUser'] or config_sections[2]['user'] }}">
+                                           value="{{ request.form['InputProxmoxUser'] or config_sections[2]['user'] }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="InputProxmoxBotPass" class="form-label">Proxmox Bot Password</label>
-                                    <input type="password" class="form-control" name="InputProxmoxBotPass"
-                                           value="{{ request.form['InputProxmoxBotPass'] or config_sections[2]['password'] }}">
+                                    <label for="InputProxmoxPass" class="form-label">Proxmox Password</label>
+                                    <input type="password" class="form-control" name="InputProxmoxPass"
+                                           value="{{ request.form['InputProxmoxPass'] or config_sections[2]['password'] }}">
                                 </div>
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" class="form-check-input" name="InputProxmoxSSL"
