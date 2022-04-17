@@ -132,5 +132,5 @@ def shutdown_clones(clone_list: list, block=False, *, proxmox: ProxmoxResource):
                     done = False  # and lose hope that we are done already.
 
 
-def user_enable(userid, enable = True, *, proxmox: ProxmoxResource):
-    proxmox.access.users(userid).put(enable=int(enable))
+def user_enable(userid, realm, enable = True, *, proxmox: ProxmoxResource):
+    proxmox.access.users(userid+"@"+realm).put(enable=int(enable))

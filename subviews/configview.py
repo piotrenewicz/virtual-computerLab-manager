@@ -63,7 +63,7 @@ def set_permission():
         cursror.execute('update user_table set userPermission = ? where userID = ?', (data['perm'], data['userID']))
 
         with u.proxapi_session(cursor=cursror) as proxmox:
-            u.user_enable(data['userID'], data['perm'] > 0, proxmox=proxmox)
+            u.user_enable(data['userID'], realm=u.get_config_value('realm', cursor=cursror), enable=data['perm'] > 0, proxmox=proxmox)
 
     return redirect(request.referrer, code=307)
 
