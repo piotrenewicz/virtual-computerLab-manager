@@ -1,5 +1,4 @@
 import time
-
 import ldap
 from proxmoxer import ProxmoxAPI, ProxmoxResource
 from data_operations import *
@@ -34,7 +33,7 @@ def attempt_ldap_login(fullname, password, ldap_params=get_config_section(1)):
 def ldap_sync(cursor: sqlite3.Cursor):
     current_users = get_ldap_users()
     usercount = len(current_users)
-    cursor.execute("Create temp table user_sync(userID TEXT PRIMARY KEY, fullname TEXT);")
+    cursor.execute("Create temp table user_sync(userID TEXT PRIMARY KEY, fullname TEXT)without rowid;")
     cursor.executemany('insert into user_sync(userID, fullname) VALUES (?, ?);', current_users)
     cursor.execute('''
         insert into user_table(userID, fullname) select userID, fullname from user_sync 
