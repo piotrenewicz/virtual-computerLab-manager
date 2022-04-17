@@ -24,7 +24,7 @@
 -- config: (option) -- section -- value
 
 
--- type == {reserved, template, clone}
+-- type == {clone, template}
 -- userPermission = {
 -- 0 disable proxmox account, we are not dealing with this user,
 -- 1 student is part of a group, enable proxmox, and give him his clones.
@@ -71,9 +71,9 @@ CREATE TABLE vmid_table(
     type INTEGER DEFAULT 0,
     node TEXT
 ) without rowid;
--- type 0 is reserved vm created manually through proxmox UI
+-- type 0 is a clone, it is set by this app, while creating a clone.
 -- type 1 is a template found while querying proxmox api
--- type 2 is a clone, it is set by this app, while creating a clone.
+-- type 2 is reserved vm created manually through proxmox UI (in current data population design, type 2 has become extinct)
 
 CREATE TABLE user_table(
     userID TEXT NOT NUll PRIMARY KEY,
@@ -90,16 +90,16 @@ create table group_table(
 );
 
 create table group_content(
-    groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE RESTRICT,
+    groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE CASCADE ,
     userID TEXT NOT NULL REFERENCES user_table(userID) ON DELETE CASCADE,
     PRIMARY KEY(groupID, userID)
 );
 
 create table allocation_table(
     allocationID INTEGER PRIMARY KEY,
-    groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE RESTRICT,
+    groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE CASCADE ,
     allocationName TEXT,
-    templateID INTEGER NOT NULL REFERENCES vmid_table(vmid) ON DELETE RESTRICT
+    templateID INTEGER NOT NULL REFERENCES vmid_table(vmid) ON DELETE CASCADE
 );
 
 create table clone_table(
