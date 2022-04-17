@@ -1,3 +1,5 @@
+import traceback
+
 import requests.exceptions
 
 import utils as u
@@ -56,9 +58,10 @@ def index():
     return render_template("base.html")
 
 
+@app.errorhandler(KeyError)
 @app.errorhandler(requests.exceptions.RequestException)
 def handle_proxmox_errors(error):
-    flash(error.__repr__(), 'error')
+    flash(traceback.format_exc(), 'error')
     return redirect(request.referrer)
 
 # great idea for production, when you don't want to leak server code.
