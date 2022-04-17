@@ -1,5 +1,5 @@
 import utils as u
-from flask import Flask, render_template, request, url_for, redirect, session
+from flask import Flask, render_template, request, url_for, redirect, session, flash
 from subviews.configview import config_app
 from subviews.loginview import login_app
 
@@ -36,16 +36,9 @@ def verify_session():
         session['login/return'] = request.url
         return redirect(url_for('login.login'))
 
-
-    # print(request.referrer)
-
-    # rules here:
-    # login screen gets a pass
-    # user screens get a required session.
-    # config screens require the session to be also level 4
-    #
-
-    # if session['authStatus']
+    if request.path.startswith(url_for('config.configuration')) and session.get('permLevel') != 4:
+        flash('Brak Uprawnień, Odmowa Dostępu', 'error')
+        return redirect(request.referrer)
 
 
 @app.route('/')
