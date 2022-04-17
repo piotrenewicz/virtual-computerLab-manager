@@ -1,5 +1,7 @@
+import time
+
 import ldap
-from proxmoxer import ProxmoxAPI
+from proxmoxer import ProxmoxAPI, ProxmoxResource
 from data_operations import *
 
 def get_ldap_users(kwargs:(None, dict) = None, clean=True):
@@ -44,11 +46,22 @@ def ldap_sync(cursor: sqlite3.Cursor):
         where fullname <> (select fullname from user_sync where userID = user_table.userID);
     ''')
     cursor.execute('''
-        select cloneID from clone_table 
-        where userID = (select userID from user_table 
-                        where userID not in (select userID from user_sync));
+        select vmid, node from vmid_table where vmid = (
+            select cloneID from clone_table 
+            where userID = (
+                select userID from user_table 
+                where userID not in (
+                    select userID from user_sync
+                )
+            )
+        );
     ''')
-    remove_clones([row['cloneID'] for row in cursor.fetchall()], cursor=cursor)
+
+    with proxapi_session(cursor=cursor) as proxmox:
+        remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
+        our_realm = get_config_value('realm', cursor=cursor)
+        proxmox.access.domain(our_realm).sync.post(**{'enable-new':0})
+
     cursor.execute('''
         delete from user_table 
         where userID = (select userID from user_table 
@@ -56,14 +69,64 @@ def ldap_sync(cursor: sqlite3.Cursor):
     ''')
     cursor.execute('drop table user_sync')
 
-    # TODO call proxmox to synchronize ldap realm
     cursor.execute('replace into config(option, section, value) VALUES ("ldap_usercount", 3, ?)', (usercount,))
     cursor.execute('replace into config(option, section, value) values ("ldap_syncdate", 3, CURRENT_TIMESTAMP)')
 
 
+class proxapi_session(object): # use nesting, have a proxmox security wrapper double with this one throws on enter, external with will catch as exit skip block and flash
+    @with_database
+    def __init__(self, path = '/', *, cursor:sqlite3.Cursor):
+        self.params = get_config_section(2, cursor=cursor)
+        self.path = path
+
+    def __enter__(self):
+        self.proxmox = ProxmoxAPI(**self.params)
+        return self.proxmox(self.path)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+#
+# # I don't like the following bit of code, proxmoxResource could be of any path, No decoration here, let's just require a session
+# def with_proxapi(function_or_path):
+#     path = function_or_path if type(function_or_path) == str else '/'
+#     def decorator(function):
+#         def wrapped(*args, **kwargs):
+#             if kwargs.get('proxmox') == ProxmoxResource:
+#                 return function(*args, **kwargs)
+#
+#             with proxapi_session(path) as proxmox:
+#                 result = function(*args, **kwargs, proxmox=proxmox)
+#             return result
+#
+#         return wrapped
+#
+#     return decorator if type(function_or_path) == str else decorator(function_or_path)
+
+
+
 @with_database
-def remove_clones(vmid_list: list, cursor: sqlite3.Cursor):
-    for vmid in vmid_list:
-        # TODO call proxmox to shutdown and remove clone vmid
-        cursor.execute('delete from clone_table where cloneID = ?;', (vmid,))
-        cursor.execute('delete from vmid_table where vmid = ?;', (vmid,))
+def remove_clones(clone_list: list, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
+    shutdown_clones(clone_list, block=True, proxmox=proxmox)
+
+    for clone in clone_list:
+        proxmox.nodes(clone['node']).qemu(clone['vmid']).delete()
+
+        cursor.execute('delete from clone_table where cloneID = ?;', (clone['vmid'],))
+        cursor.execute('delete from vmid_table where vmid = ?;', (clone['vmid'],))
+
+
+def shutdown_clones(clone_list: list, block=False, *, proxmox: ProxmoxResource):
+    for clone in clone_list:
+        proxmox.nodes(clone['node']).qemu(clone['vmid']).status.shutdown.post()
+
+    if block:  # if we want to wait for shutdown
+        done = False  # assume we are not done, as we haven't checked
+        while not done:  # keep trying
+            time.sleep(2) # give the clones some time to attempt shutdown.
+            done = True  # hope that we are done.
+            for clone in clone_list:  # check all clones
+                clone_link = proxmox.nodes(clone['node']).qemu(clone['vmid'])
+                if clone_link.status.current.get()['status'] == 'running':  # when clones are still running
+                    clone_link.status.shutdown.post()  # order shutdown again
+                    done = False  # and lose hope that we are done already.
