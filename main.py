@@ -58,6 +58,13 @@ def handle_proxmox_errors(error):
     flash(error.__repr__(), 'error')
     return redirect(request.referrer)
 
+# great idea for production, when you don't want to leak server code.
+@app.errorhandler(Exception)
+def unexpected_exception_handler(error):
+    if app.env == 'production':
+        return 'Internal Error', 500
+    else:
+        raise error
 
 
 # when shipping remember to put a block here, we don't want to allow production use of development mode
