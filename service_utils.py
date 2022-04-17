@@ -59,8 +59,9 @@ def ldap_sync(cursor: sqlite3.Cursor):
 
     with proxapi_session(cursor=cursor) as proxmox:
         remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
-        our_realm = get_config_value('realm', cursor=cursor)
-        proxmox.access.domain(our_realm).sync.post(**{'enable-new':0})
+        if get_config_value('user', cursor=cursor) == 'root@pam':
+            our_realm = get_config_value('realm', cursor=cursor)
+            proxmox.access.domains(our_realm).sync.post(**{'enable-new':0})
 
     cursor.execute('''
         delete from user_table 
