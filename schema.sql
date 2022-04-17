@@ -24,7 +24,7 @@
 -- config: (option) -- section -- value
 
 
--- type == {template, clone, reserved}
+-- type == {reserved, template, clone}
 -- userPermission = {
 -- 0 disable proxmox account, we are not dealing with this user,
 -- 1 student is part of a group, enable proxmox, and give him his clones.
