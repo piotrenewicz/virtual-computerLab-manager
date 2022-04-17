@@ -23,7 +23,9 @@
                 {{ session['login'] }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userIndicatorDropdown">
-{#                <li><a class="dropdown-item" href="{{ url_for('config.configuration') }}">Config</a></li>#}
+                {% if session.get('permLevel') == 3 %}
+                    <li><a class="dropdown-item" href="{{ url_for('config.sync_database', target=2) }}">Sync Proxmox VMS</a></li>
+                {% endif %}
                 <li><a class="dropdown-item" href="{{ url_for('login.logout') }}">Wyloguj</a></li>
             </ul>
         {% endif %}

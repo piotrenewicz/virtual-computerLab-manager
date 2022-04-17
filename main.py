@@ -38,6 +38,9 @@ def verify_session():
         session['login/return'] = request.url
         return redirect(url_for('login.login'))
 
+    if request.path == url_for('config.sync_database', target=2) and session.get('premLevel') == 3:
+        return None  # allow syncing proxmox vms to vm maintainers.
+
     if request.path.startswith(url_for('config.configuration')) and session.get('permLevel') != 4:
         flash('Brak Uprawnień, Odmowa Dostępu', 'error')
         return redirect(request.referrer)

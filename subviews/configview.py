@@ -36,7 +36,7 @@ def save(target):
         session['config/active_section'] = target
     return redirect(request.referrer, code=307)
 
-@config_app.route('/config/sync/<int:target>', methods=('POST',))
+@config_app.route('/config/sync/<int:target>', methods=('POST', 'GET'))  # VM Maintainers, trigger this from account menu, which can't make POST requests.
 def sync_database(target):
     session['config/active_section'] = 3
     match target:
