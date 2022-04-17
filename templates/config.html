@@ -48,7 +48,7 @@
                                            value="{{ request.form['InputLdapRealm'] or config_sections[1]['realm'] }}">
                                 </div>
                                 <button type="submit"
-                                        class="btn {% if session['check/2'] %} btn-success {% else %} btn-primary {% endif %}"
+                                        class="btn {% if session['check/1'] %} btn-success {% else %} btn-primary {% endif %}"
                                         formaction="{{ url_for('config.check_connection', target=1) }}">Check connection
                                 </button>
                                 <button type="submit"
