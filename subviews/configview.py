@@ -46,11 +46,9 @@ def save(target):
 @config_app.route('/config/sync/<int:target>', methods=('POST',))
 def sync_database(target):
     session['config/active_section'] = 3
-    if target == 1:
-        # proxmox_sync()
-        pass
-    elif target == 2:
-        u.ldap_sync()
+    match target:
+        case 1: u.ldap_sync()
+        case 2: pass# u.proxmox_sync()
 
     return redirect(request.referrer, code=307)
 

@@ -7,16 +7,14 @@ def check_configured():
         first_run = get_config_value('first-run')
     except sqlite3.OperationalError:
         first_run = None
-    if first_run is None:
-        import init_database
-        init_database.init()
-        return False
-    elif first_run == 1:
-        return False
-    elif first_run == 0:
-        return True
-    else:
-        raise Exception("Non-binary first-run value!")
+    match first_run:
+        case None:
+            import init_database
+            init_database.init()
+            return False
+        case 1: return False
+        case 0: return True
+        case _: raise Exception("Non-binary first-run value!")
 
 
 
@@ -37,34 +35,31 @@ def active_section(section_id, when_active, when_hidden):
 
 
 def form_reader(section):
-    if section == 1:
-        return {
-            'host': request.form.get('InputProxmoxAddress'),
-            'user': request.form.get('InputProxmoxBotUser'),
-            'password': request.form.get('InputProxmoxBotPass'),
-            'verify_ssl': 0 if request.form.get('InputProxmoxSSL') is None else 1
-        }
-    elif section == 2:
-        return {
-            'url': request.form.get('InputLdapAddress'),
-            'base': request.form.get('InputLdapBase'),
-            'filter': request.form.get('InputLdapFilter')
-        }
-    elif section == 4:
-        return {
-            'userID': request.form.get('InputPermUser'),
-            'perm': request.form.get('InputPermPerm')
-        }
-    elif section == 5:
-        return {
-            'SECRET_KEY': request.form.get('InputSECRETKEY'),
-            'first-run': 0 if request.form.get('InputFirstRun') else 1
-        }
-    elif section == 'login':
-        return {
-            'login': request.form.get('InputAppLogin'),
-            'pass': request.form.get('InputAppPassword')
-        }
+    match section:
+        case 1: return {
+                'url': request.form.get('InputLdapAddress'),
+                'base': request.form.get('InputLdapBase'),
+                'filter': request.form.get('InputLdapFilter'),
+                'realm': request.form.get('InputLdapRealm')
+            }
+        case 2: return {
+                'host': request.form.get('InputProxmoxAddress'),
+                'user': request.form.get('InputProxmoxBotUser'),
+                'password': request.form.get('InputProxmoxBotPass'),
+                'verify_ssl': 0 if request.form.get('InputProxmoxSSL') is None else 1
+            }
+        case 4: return {
+                'userID': request.form.get('InputPermUser'),
+                'perm': request.form.get('InputPermPerm')
+            }
+        case 5: return {
+                'SECRET_KEY': request.form.get('InputSECRETKEY'),
+                'first-run': 0 if request.form.get('InputFirstRun') else 1
+            }
+        case 'login': return {
+                'login': request.form.get('InputAppLogin'),
+                'pass': request.form.get('InputAppPassword')
+            }
 
 
 def check_proxmox(kwargs):
@@ -91,10 +86,9 @@ def check_ldap(kwargs):
 
 def validate_connection_params(target):
     kwargs = form_reader(target)
-    if target == 1:
-        return check_proxmox(kwargs)
-    elif target == 2:
-        return check_ldap(kwargs)
+    match target:
+        case 1: return check_ldap(kwargs)
+        case 2: return check_proxmox(kwargs)
 
 
 def perform_login():
@@ -105,23 +99,18 @@ def perform_login():
         perm = one_row_fix(cursor.fetchone())
         cursor.execute('select fullname from user_table where userID = ?', (data['login'],))
         cn = one_row_fix(cursor.fetchone())
-        ldap_params = get_config_section(2, cursor=cursor)
+        ldap_params = get_config_section(1, cursor=cursor)
 
-    if perm is None:
-        flash('Podany [login] i/lub hasło są nieprawidłowe', 'info')
-        return False
-
-    if perm in (0, 1):
-        flash('Brak Uprawnień, Odmowa Dostępu', 'error')
-        return False
-
-    if perm in (2, 3, 4) and attempt_ldap_login(cn, data['pass'], ldap_params=ldap_params):
-        flash('logged in', 'success')
-        session['login'] = data['login']
-        session['permLevel'] = perm
-        return True
-
-    flash('Podany login i/lub [hasło] są nieprawidłowe', 'info')
+    match perm:
+        case None: flash('Podany login i/lub hasło są nieprawidłowe', 'info')
+        case (0 | 1): flash('Brak Uprawnień, Odmowa Dostępu', 'error')
+        case (2 | 3 | 4):
+            if attempt_ldap_login(cn, data['pass'], ldap_params=ldap_params):
+                flash('logged in', 'success')
+                session['login'] = data['login']
+                session['permLevel'] = perm
+                return True
+            else:
+                flash('Podany login i/lub hasło są nieprawidłowe', 'info')
+        case _: flash('login error', 'error')
     return False
-
-

@@ -17,7 +17,7 @@
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionConfigCollapse1" aria-expanded="true"
                                 aria-controls="accordionConfigCollapse1">
-                            Proxmox Settings
+                            Ldap Settings
                         </button>
                     </h2>
                     <div id="accordionConfigCollapse1"
@@ -26,30 +26,29 @@
                         <div class="accordion-body">
                             <form action="{{ url_for('config.save', target=1) }}" method="post">
                                 <div class="mb-3">
-                                    <label for="InputProxmoxAddress" class="form-label">Proxmox Address</label>
-                                    <input type="text" class="form-control" name="InputProxmoxAddress"
-                                           placeholder="0.0.0.0"
-                                           value="{{ request.form['InputProxmoxAddress'] or config_sections[1]['host'] }}">
+                                    <label for="InputLdapAddress" class="form-label">Ldap Url</label>
+                                    <input type="text" class="form-control" name="InputLdapAddress"
+                                           placeholder="ldap://0.0.0.0"
+                                           value="{{ request.form['InputLdapAddress'] or config_sections[1]['url'] }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="InputProxmoxBotUser" class="form-label">Proxmox Bot Login</label>
-                                    <input type="text" class="form-control" name="InputProxmoxBotUser"
-                                           placeholder="username@realm"
-                                           value="{{ request.form['InputProxmoxBotUser'] or config_sections[1]['user'] }}">
+                                    <label for="InputLdapBase" class="form-label">Ldap Base</label>
+                                    <input type="text" class="form-control" name="InputLdapBase"
+                                           placeholder="dc=example,dc=com"
+                                           value="{{ request.form['InputLdapBase'] or config_sections[1]['base'] }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="InputProxmoxBotPass" class="form-label">Proxmox Bot Password</label>
-                                    <input type="password" class="form-control" name="InputProxmoxBotPass"
-                                           value="{{ request.form['InputProxmoxBotPass'] or config_sections[1]['password'] }}">
+                                    <label for="InputLdapFilter" class="form-label">Ldap Filter</label>
+                                    <input type="text" class="form-control" name="InputLdapFilter" placeholder="(objectClass=posixAccount)"
+                                           value="{{ request.form['InputLdapFilter'] or config_sections[1]['filter'] }}">
                                 </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL"
-                                            {% if request.form.get('InputProxmoxSSL') == 'on' or config_sections[1]['verify_ssl'] == 1 %}
-                                           checked {% endif %}>
-                                    <label class="form-check-label" for="InputProxmoxSSL">Use SSL for Proxmox</label>
+                                <div class="mb-3">
+                                    <label for="InputLdapRealm" class="form-label">This Ldap Server is configured in proxmox as Realm:</label>
+                                    <input type="text" class="form-control" name="InputLdapRealm" placeholder="app_ldap"
+                                           value="{{ request.form['InputLdapRealm'] or config_sections[1]['realm'] }}">
                                 </div>
                                 <button type="submit"
-                                        class="btn {% if session['check/1'] %} btn-success {% else %} btn-primary {% endif %}"
+                                        class="btn {% if session['check/2'] %} btn-success {% else %} btn-primary {% endif %}"
                                         formaction="{{ url_for('config.check_connection', target=1) }}">Check connection
                                 </button>
                                 <button type="submit"
@@ -63,13 +62,13 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading2">
                         <button class="accordion-button {{ active_section(2, '', 'collapsed') }}" type="button"
-                                data-bs-toggle="{% if config_sections[1]['host'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-toggle="{% if config_sections[1]['url'] %}collapse{% else %}disabled{% endif %}"
                                 data-bs-target="#accordionConfigCollapse2" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse2">
-                            Ldap Settings
-                            {% if not config_sections[1]['host'] %}
+                            Proxmox Settings
+                            {% if not config_sections[1]['url'] %}
                                 <span class="ps-3 pe-1 fas fa-lock"></span>
-                                <small class="text-muted">Set up a Proxmox connection, to unlock</small>
+                                <small class="text-muted">Set up Ldap connection, to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
@@ -79,21 +78,27 @@
                         <div class="accordion-body">
                             <form action="{{ url_for('config.save', target=2) }}" method="post">
                                 <div class="mb-3">
-                                    <label for="InputLdapAddress" class="form-label">Ldap Url</label>
-                                    <input type="text" class="form-control" name="InputLdapAddress"
-                                           placeholder="ldap://0.0.0.0"
-                                           value="{{ request.form['InputLdapAddress'] or config_sections[2]['url'] }}">
+                                    <label for="InputProxmoxAddress" class="form-label">Proxmox Address</label>
+                                    <input type="text" class="form-control" name="InputProxmoxAddress"
+                                           placeholder="0.0.0.0"
+                                           value="{{ request.form['InputProxmoxAddress'] or config_sections[2]['host'] }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="InputLdapBase" class="form-label">Ldap Base</label>
-                                    <input type="text" class="form-control" name="InputLdapBase"
-                                           placeholder="dc=example,dc=com"
-                                           value="{{ request.form['InputLdapBase'] or config_sections[2]['base'] }}">
+                                    <label for="InputProxmoxBotUser" class="form-label">Proxmox Bot Login</label>
+                                    <input type="text" class="form-control" name="InputProxmoxBotUser"
+                                           placeholder="username@realm"
+                                           value="{{ request.form['InputProxmoxBotUser'] or config_sections[2]['user'] }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="InputLdapFilter" class="form-label">Ldap Filter</label>
-                                    <input type="text" class="form-control" name="InputLdapFilter" placeholder="(objectClass=posixAccount)"
-                                           value="{{ request.form['InputLdapFilter'] or config_sections[2]['filter'] }}">
+                                    <label for="InputProxmoxBotPass" class="form-label">Proxmox Bot Password</label>
+                                    <input type="password" class="form-control" name="InputProxmoxBotPass"
+                                           value="{{ request.form['InputProxmoxBotPass'] or config_sections[2]['password'] }}">
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL"
+                                            {% if request.form.get('InputProxmoxSSL') == 'on' or config_sections[2]['verify_ssl'] == 1 %}
+                                           checked {% endif %}>
+                                    <label class="form-check-label" for="InputProxmoxSSL">Use SSL for Proxmox</label>
                                 </div>
                                 <button type="submit"
                                         class="btn {% if session['check/2'] %} btn-success {% else %} btn-primary {% endif %}"
@@ -110,13 +115,13 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading3">
                         <button class="accordion-button {{ active_section(3, '', 'collapsed') }}" type="button"
-                                data-bs-toggle="{% if config_sections[2]['url'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-toggle="{% if config_sections[2]['host'] %}collapse{% else %}disabled{% endif %}"
                                 data-bs-target="#accordionConfigCollapse3" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse3">
                             Database Synchronization
-                            {% if not config_sections[2]['url'] %}
+                            {% if not config_sections[2]['host'] %}
                                 <span class="ps-3 pe-1 fas fa-lock"></span>
-                                <small class="text-muted">Set up a Ldap connection, to unlock</small>
+                                <small class="text-muted">Set up a Proxmox connection, to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
@@ -128,34 +133,7 @@
                                 <div class="row mb-2">
                                     <div class="col-3 pe-0">
                                         <button type="submit" class="btn btn-primary w-100"
-                                                formaction="{{ url_for('config.sync_database', target=1) }}">Sync Proxmox Vms
-                                        </button>
-                                    </div>
-                                    <div class="col-4 ms-2 border border-secondary rounded-3">
-                                        <div class="row justify-content-between align-content-center h-100">
-                                            <div class="col-auto">
-                                                Proxmox Templates available:
-                                            </div>
-                                            <div class="col-auto">
-                                                <span class="badge bg-secondary">{{ config_sections[3]['proxmox_templatecount'] or '0' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 ms-2 border border-secondary rounded-3">
-                                        <div class="row justify-content-between align-content-center h-100">
-                                            <div class="col-auto">
-                                                Last Proxmox Sync:
-                                            </div>
-                                            <div class="col-auto">
-                                                <span class="badge bg-secondary"> {{ config_sections[3]['proxmox_syncdate'] or 'Never!' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-3 pe-0">
-                                        <button type="submit" class="btn btn-primary w-100"
-                                                formaction="{{ url_for('config.sync_database', target=2) }}">Sync Ldap Users
+                                                formaction="{{ url_for('config.sync_database', target=1) }}">Sync Ldap Users
                                         </button>
                                     </div>
                                     <div class="col-4 ms-2 border border-secondary rounded-3">
@@ -175,6 +153,33 @@
                                             </div>
                                             <div class="col-auto">
                                                 <span class="badge bg-secondary">  {{ config_sections[3]['ldap_syncdate'] or 'Never!' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-3 pe-0">
+                                        <button type="submit" class="btn btn-primary w-100"
+                                                formaction="{{ url_for('config.sync_database', target=2) }}">Sync Proxmox Vms
+                                        </button>
+                                    </div>
+                                    <div class="col-4 ms-2 border border-secondary rounded-3">
+                                        <div class="row justify-content-between align-content-center h-100">
+                                            <div class="col-auto">
+                                                Proxmox Templates available:
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-secondary">{{ config_sections[3]['proxmox_templatecount'] or '0' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 ms-2 border border-secondary rounded-3">
+                                        <div class="row justify-content-between align-content-center h-100">
+                                            <div class="col-auto">
+                                                Last Proxmox Sync:
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-secondary"> {{ config_sections[3]['proxmox_syncdate'] or 'Never!' }}</span>
                                             </div>
                                         </div>
                                     </div>

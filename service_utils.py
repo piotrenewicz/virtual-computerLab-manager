@@ -4,7 +4,7 @@ from data_operations import *
 
 def get_ldap_users(kwargs:(None, dict) = None, clean=True):
     if kwargs is None:
-        kwargs = get_config_section(2)
+        kwargs = get_config_section(1)
     ldap_conn = ldap.initialize(kwargs['url'])
     ldap_conn.set_option(ldap.OPT_REFERRALS, 0)
     ldap_conn.simple_bind_s('', '')
@@ -15,7 +15,7 @@ def get_ldap_users(kwargs:(None, dict) = None, clean=True):
     return result
 
 
-def attempt_ldap_login(fullname, password, ldap_params=get_config_section(2)):
+def attempt_ldap_login(fullname, password, ldap_params=get_config_section(1)):
     ldap_conn = ldap.initialize(ldap_params['url'])
     ldap_conn.set_option(ldap.OPT_REFERRALS, 0)
     try:
