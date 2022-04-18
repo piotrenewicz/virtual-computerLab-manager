@@ -2,6 +2,14 @@
 
 {% block title %} App Configuration {% endblock %}
 
+{% block navigation_area %}
+    {% with dir = [("Config", '#')] %}
+        {% include 'common/navigation.html' with context %}
+    {% endwith %}
+{% endblock %}
+
+
+
 {% block content %}
     {#    <div class="row mt-2 pt-3 pb-3 bg-light border border-2 border-secondary rounded-3">#}
     {#        <div class="col">#}
