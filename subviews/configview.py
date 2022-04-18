@@ -86,7 +86,7 @@ def confirm_and_lock():
         if not data['SECRET_KEY'] in (None,''):
             cursor.execute("replace into config(option, section, value) VALUES ('SECRET_KEY', 5, ?)", (data['SECRET_KEY'],))
             flash('SECRET_KEY updated', 'info')
-        cursor.execute("replace into config(option, value) VALUES ('first-run', ?)", (data['first-run'],))
+        cursor.execute("replace into config(option, section, value) VALUES ('first-run', 5, ?)", (data['first-run'],))
 
     flash("Settings saved!", 'success')
     session['config/active_section'] = 5
