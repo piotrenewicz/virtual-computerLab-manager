@@ -6,6 +6,7 @@ import utils as u
 from flask import Flask, render_template, request, url_for, redirect, session, flash
 from subviews.configview import config_app
 from subviews.loginview import login_app
+from subviews.coreview import core_app
 
 app = Flask(__name__)
 u.configured = u.check_configured()
@@ -17,7 +18,7 @@ app.config.update(
 
 app.register_blueprint(config_app)
 app.register_blueprint(login_app)
-
+app.register_blueprint(core_app)
 
 @app.context_processor
 def inject_default_context():
@@ -52,10 +53,8 @@ def verify_session():
 def index():
     if not u.configured:
         return redirect(url_for('config.configuration'))
+    return redirect(url_for('core.overview'))
 
-    # overview dashboard idk, app
-
-    return render_template("base.html")
 
 
 @app.errorhandler(KeyError)
