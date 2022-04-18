@@ -51,10 +51,7 @@ def verify_session():
 
 @app.route('/')
 def index():
-    if not u.configured:
-        return redirect(url_for('config.configuration'))
-    return redirect(url_for('core.overview'))
-
+    return redirect(url_for('core.overview' if u.configured else 'config.configuration'))
 
 
 @app.errorhandler(KeyError)
