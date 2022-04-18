@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
+
+{% block content %}
+
+
+
+
+    <div class="row">
+        <div class="col-auto">{{ group_info['name'] }}</div>
+        {% for user in group_info['members'] %}
+            <a class="col-12">
+                {{ user['fullname'] }}
+            </a>
+        {% endfor %}
+        {% for allocation in group_info['alloc'] %}
+            <a class="col-12">
+                {{ allocation['allocationName'] }}
+            </a>
+        {% endfor %}
+    </div>
+
+{% endblock %}

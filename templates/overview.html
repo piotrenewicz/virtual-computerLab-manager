@@ -6,11 +6,13 @@
 
 
 
-
-
-    {% for group in groups %}
-
-    {% endfor %}
-
+    <div class="row">
+        <a class="col-auto btn btn-primary" href="{{ url_for('core.add_group') }}">Dodaj Grupę</a>
+        {% for group in groups %}
+            <a class="col-auto p-2 btn btn-outline-secondary" href="{{ url_for('core.group_detail', group_id=group['groupID']) }}">
+                {{ group['groupName'] }}
+            </a>
+        {% endfor %}
+    </div>
 
 {% endblock %}
