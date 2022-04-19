@@ -125,3 +125,15 @@ def perform_login():
 def get_group_name(group_id, cursor: sqlite3.Cursor):
     cursor.execute('select groupName from group_table where groupID = ? ', (group_id,))
     return one_row_fix(cursor.fetchone()) or ''
+
+
+@with_database
+def auto_disable_users(proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
+    realm = get_config_value('realm', cursor=cursor)
+    cursor.execute('select userID from user_table where userPermission = -1')
+    for user in cursor.fetchall():
+        cursor.execute('select count(groupID) from group_content where userID = ?', (user['userID']))
+        account_status = one_row_fix(cursor.fetchone()) > 0
+        user_enable(user['userID'], realm, enable=account_status, proxmox=proxmox)
+        cursor.execute('update user_table set userPermission = ? where userID = ?',
+                       (1 if account_status else 0, user['userID']))
