@@ -57,15 +57,13 @@ def set_permission():
             cursror.execute('select userID from user_table where fullname = ?', (data['userID'],))
             data['userID'] = u.one_row_fix(cursror.fetchone())
 
-        if data['perm'] == 0:
-            cursror.execute('select count(groupID) from group_content where userID = ?', (data['userID'],))
-            if u.one_row_fix(cursror.fetchone()) > 0:
-                data['perm'] = 1
-
         cursror.execute('update user_table set userPermission = ? where userID = ?', (data['perm'], data['userID']))
 
         with u.proxapi_session(cursor=cursror) as proxmox:
-            u.user_enable(data['userID'], realm=u.get_config_value('realm', cursor=cursror), enable=data['perm'] > 0, proxmox=proxmox)
+            if data['perm'] == -1:
+                u.auto_disable_users(proxmox=proxmox, cursor=cursror)
+            else:
+                u.user_enable(data['userID'], realm=u.get_config_value('realm', cursor=cursror), proxmox=proxmox)
 
     return redirect(request.referrer, code=307)
 
