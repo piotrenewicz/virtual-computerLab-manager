@@ -27,9 +27,17 @@
                     {#                        <div class="col-auto">#}
                     {#                            IS THIS IN THE MIDDLE?#}
                     {#                        </div>#}
-                    {% block user_area %}
-                        {% include 'common/user_indicator.html' %}
-                    {% endblock %}
+                    <div class="col-auto p-0">
+                        <div class="row">
+                            <div class="col-auto p-0 pe-2">
+                                {% block user_control %}
+                                {% endblock %}
+                            </div>
+                            {% block user_area %}
+                                {% include 'common/user_indicator.html' %}
+                            {% endblock %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
