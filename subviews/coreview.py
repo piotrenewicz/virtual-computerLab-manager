@@ -48,9 +48,20 @@ def add_group():
 
 @core_app.route('/group/<int:group_id>/remove/')
 def remove_group(group_id: int):
-    # TODO this needs reworking to ensure safe deallocation
     with u.db_session() as cursor:
-        cursor.execute('delete from group_table where groupID = ?', (group_id,))
+        cursor.execute('''update user_table set userPermission = -1 where userPermission = 1 and userID = (
+            select userID from group_content where groupID = ?)''', (group_id,))
+
+        cursor.execute('''
+            select vt.vmid, node from vmid_table vt inner join clone_table ct on vt.vmid = ct.cloneID
+            where ct.allocationID = (select allocationID from allocation_table where groupID = ?)
+        ''', (group_id,))
+
+        with u.proxapi_session() as proxmox:
+            u.remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
+            cursor.execute('delete from group_table where groupID = ?', (group_id,))
+            u.auto_disable_users(proxmox=proxmox, cursor=cursor)
+
     return redirect(request.root_url)
 
 
