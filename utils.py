@@ -1,3 +1,5 @@
+import sqlite3
+
 from service_utils import *
 from flask import session, request, flash
 configured = None

@@ -2,10 +2,6 @@
 {% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
 
 {% block content %}
-
-
-
-
     <div class="row">
         <a class="col-auto btn btn-primary" href="{{ url_for('core.add_group') }}">Dodaj Grupę</a>
         {% for group in groups %}
