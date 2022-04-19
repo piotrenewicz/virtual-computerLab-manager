@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand navbar-light bg-light col-auto rounded-3 pe-0 py-0">
     <div class="container-fluid">
         <a class="navbar-brand fas text-secondary" href="{{ url_for('index') }}">Start</a>
-        {% for nav_text, nav_url in dir %}
+        {% for nav_text, nav_url in pwd %}
             <span class="fas fa-chevron-right text-secondary"></span>
             <a class="nav-link" href="{{ nav_url }}">{{ nav_text }}</a>
         {% endfor %}

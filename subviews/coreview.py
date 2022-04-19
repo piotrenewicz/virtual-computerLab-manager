@@ -30,9 +30,9 @@ def group_detail(group_id:int):
         cursor.execute('select allocationID, allocationName from allocation_table where groupID = ?', (group_id,))
         group_info['alloc'] = cursor.fetchall()
 
-    dir = [("Grupa:"+group_info['name'], '#')]
+    pwd = [("Grupa:"+context['name'], '#')]
 
-    return render_template('group.html', group_info=group_info, dir=dir)
+    return render_template('group.html', group_info=group_info, pwd=pwd)
 
 
 @core_app.route('/group-new/')
