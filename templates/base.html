@@ -19,8 +19,8 @@
 <div class="container-fluid">
     <div class="row bg-secondary text-light">
         <div class="col">
-            <div class="container">
-                <div class="row justify-content-between pt-3 pb-3">
+            <div class="container ps-0">
+                <div class="row justify-content-between ms-0 py-3">
                     {% block navigation_area %}
                         {% include 'common/navigation.html' with context %}
                     {% endblock %}
@@ -44,7 +44,7 @@
     </div>
     <div class="row">
         <div class="col">
-            <main class="container">
+            <main class="container p-0 pt-2">
                 {% block content %}
                     <div class="row mt-2 pt-3 pb-3 bg-light border border-2 border-danger rounded-3">
                         <div class="col text-danger">
