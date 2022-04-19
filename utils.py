@@ -62,6 +62,9 @@ def form_reader(section):
                 'login': request.form.get('InputAppLogin'),
                 'pass': request.form.get('InputAppPassword')
             }
+        case 'search': return {
+                'search': request.form.get('InputSearch')
+            }
 
 
 def check_proxmox(kwargs):
@@ -116,3 +119,9 @@ def perform_login():
                 flash('Podany login i/lub hasło są nieprawidłowe', 'info')
         case _: flash('login error', 'error')
     return False
+
+
+@with_database
+def get_group_name(group_id, cursor: sqlite3.Cursor):
+    cursor.execute('select groupName from group_table where groupID = ? ', (group_id,))
+    return one_row_fix(cursor.fetchone()) or ''

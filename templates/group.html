@@ -1,22 +1,63 @@
 {% extends 'base.html' %}
 {% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
 
+{% block before_body %}
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Usuń Grupę</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Czy napewno chcesz usunąć Grupę {{ context['name'] }}?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <a class="btn btn-danger" href="{{ url_for('core.remove_group', group_id=context['id']) }}">Usuń</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block user_control %}
+    <button type="button" class="col-auto btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">Usuń Grupę</button>
+{% endblock %}
+
+
 {% block content %}
-
-
-
-
-    <div class="row">
-        <div class="col-auto">{{ group_info['name'] }}</div>
-        {% for user in group_info['members'] %}
-            <a class="col-12">
-                {{ user['fullname'] }}
-            </a>
-        {% endfor %}
-        {% for allocation in group_info['alloc'] %}
-            <a class="col-12">
-                {{ allocation['allocationName'] }}
-            </a>
-        {% endfor %}
+    <form action="{{ url_for('core.group_detail', group_id=context['id']) }}" method="post">
+        <div class="row mb-2">
+            <label for="InputGroupName" id="InputGroupNameLabel" class="col-sm-3 col-form-label text-end">Ustaw nazwę grupy</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="InputGroupName" placeholder="Ustaw nazwę grupy!"
+                           aria-label="Set Group Name" aria-describedby="InputGroupNameLabel"
+                           value="{{ context['name'] }}">
+                    <button class="btn btn-primary" type="submit" id="group-name-input">Zapisz</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="row mb-2 align-items-center">
+        <label class="col-sm-5 text-end pe-0">W grupie jest</label>
+        <div class="ps-1 col-sm-2">
+            <div class="badge p-2 bg-secondary">{{ context['member_count'] }}</div>
+            Osób
+        </div>
+        <div class="col-5">
+            <a class="btn w-100 btn-primary" href="{{ url_for('core.edit_members', group_id=context['id']) }}">Zarządzaj Osobami</a>
+        </div>
+    </div>
+    <div class="row mb-2 align-items-center">
+        <label class="col-sm-5 text-end pe-0">Osoby w grupie mają dostęp do</label>
+        <div class="ps-1 col-sm-2">
+            <div class="badge p-2 bg-secondary">{{ context['alloc_count'] }}</div>
+            VM.
+        </div>
+        <div class="col-5">
+            <a class="btn w-100 btn-primary">Zarządzaj Przydziałami</a>
+        </div>
     </div>
 {% endblock %}
