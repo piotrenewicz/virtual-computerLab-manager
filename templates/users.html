@@ -1,10 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
 
-</body>
-</html>
+{% block before_body %}
+    {% for user in context['group_members'] %}
+        <div class="modal fade" id="deleteConfirmModal{{ loop.index }}" tabindex="-1" aria-labelledby="deleteConfirmModalLabel{{ loop.index }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteConfirmModalLabel{{ loop.index }}">Usuń Osobę z Grupy</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Czy napewno chcesz usunąć {{ user['fullname'] }} z grupy {{ context['group_name'] }}?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                        <a class="btn btn-danger" href="{{ url_for('core.remove_user', user_id=user['userID'], group_id=context['group_id']) }}">Usuń</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+{##}
+{#{% block user_control %}#}
+{#    <button type="button" class="col-auto btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">Usuń Grupę</button>#}
+{#{% endblock %}#}
+
+
+{% block content %}
+    {% include 'common/userTypeSelect.html' %}
+    <form name="InputAddUser" action="{{ url_for('core.add_user', group_id=context['group_id']) }}" method="post">
+        <label for="InputUser" class="form-label">Dodaj osobę do grupy</label>
+        <div class="input-group mb-3">
+            <input class="form-control" name="InputUser" id="InputUser" list="InputUserOptions" placeholder="Type to search...">
+            <datalist id="InputUserOptions">
+                {% if session.get('preferUserQuery') == 1 %}
+                    {% for user in context['remainder'] %}
+                        <option value="{{ user['userID'] }}">
+                    {% endfor %}
+                {% elif session.get('preferUserQuery') == 2 %}
+                {% for user in context['remainder'] %}
+                    <option value="{{ user['fullname'] }}">
+                {% endfor %}
+                {% endif %}
+            </datalist>
+            <button type="submit"
+                    class="btn btn-primary {% if not session.get('preferUserQuery') %} disabled {% endif %}">
+                <span class="fas fa-user-plus pe-2"></span>Dodaj
+            </button>
+        </div>
+    </form>
+
+{#    MARKER HERE#}
+    <div class="list-group">
+        {% for user in context['group_members'] %}
+            <a class="list-group-item {{ loop.cycle('bg-light', 'bg-white') }}">
+                <div class="row justify-content-between">
+                    <div class="col-auto hstack align-items-center">
+                        {{ user['fullname'] }}
+                        <small class="ps-2 text-muted">({{ user['userID'] }})</small>
+                    </div>
+                    <button type="button" class="col-auto btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal{{ loop.index }}">
+                        <span class="fas fa-user-minus pe-2"></span> Usuń
+                    </button>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}

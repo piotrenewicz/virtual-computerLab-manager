@@ -93,3 +93,42 @@ def edit_members(group_id: int):
     return render_template('users.html', context=context, pwd=pwd)
 
 
+@core_app.route('/group/<int:group_id>/members/<string:user_id>/remove/')
+def remove_user(group_id: int, user_id: str):
+    with u.db_session() as cursor:
+        cursor.execute('''
+            update user_table set userPermission = -1
+            where userID = ? and userPermission = 1
+        ''', (user_id,))
+
+        cursor.execute('''
+            select vt.vmid, node from vmid_table vt inner join clone_table ct on vt.vmid = ct.cloneID
+            where ct.allocationID = (select allocationID from allocation_table where groupID = ?)
+            and ct.userID = ?
+        ''', (group_id, user_id))
+
+        with u.proxapi_session(cursor=cursor) as proxmox:
+            u.remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
+            cursor.execute('delete from group_content where userID = ? and groupID = ?',
+                           (user_id, group_id))
+            u.auto_disable_users(proxmox=proxmox, cursor=cursor)
+    return redirect(request.referrer or '/')
+
+
+@core_app.route('/group/<int:group_id>/members/add/', methods=('POST',))
+def add_user(group_id: int):
+    user_id = request.form.get('InputUser')
+    if user_id:
+        with u.db_session() as cursor:
+            if session['preferUserQuery'] == 2:
+                cursor.execute('select userID from user_table where fullname = ?', (user_id,))
+                user_id = u.one_row_fix(cursor.fetchone())
+
+            cursor.execute('insert into group_content(groupID, userID) values (?, ?)', (group_id, user_id))
+            cursor.execute('update user_table set userPermission = 1 where userID = ? and userPermission = 0', (user_id,))
+            cursor.execute('select allocationID from allocation_table where groupID = ?', (group_id,))
+            with u.proxapi_session(cursor=cursor) as proxmox:
+                for alloc in cursor.fetchall():
+                    u.establish_allocation(alloc['allocationID'], proxmox=proxmox, cursor=cursor)
+                u.user_enable(user_id, realm=u.get_config_value('realm', cursor=cursor), proxmox=proxmox)
+    return redirect(request.referrer or '/')
