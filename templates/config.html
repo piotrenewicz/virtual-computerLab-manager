@@ -136,7 +136,8 @@
                                 <div class="row mb-2">
                                     <div class="col-3 pe-0">
                                         <button type="submit" class="btn btn-primary w-100"
-                                                formaction="{{ url_for('config.sync_database', target=1) }}">Sync Ldap Users
+                                                formaction="{{ url_for('config.sync_database', target=1) }}">
+                                            Sync Ldap Users
                                         </button>
                                     </div>
                                     <div class="col-4 ms-2 border border-secondary rounded-3">
@@ -163,7 +164,8 @@
                                 <div class="row mb-2">
                                     <div class="col-3 pe-0">
                                         <button type="submit" class="btn btn-primary w-100"
-                                                formaction="{{ url_for('config.sync_database', target=2) }}">Sync Proxmox Vms
+                                                formaction="{{ url_for('config.sync_database', target=2) }}">
+                                            Sync Proxmox Vms
                                         </button>
                                     </div>
                                     <div class="col-4 ms-2 border border-secondary rounded-3">
@@ -275,7 +277,7 @@
                                             <div id="configCarousel" class="carousel carousel-dark slide" data-bs-interval="false" data-bs-ride="carousel">
                                                 <div class="carousel-inner">
                                                     <div class="carousel-item active">
-                                                        <div class="list-group overflow-scroll"  style="height: 60vh">
+                                                        <div class="list-group overflow-scroll" style="height: 60vh">
                                                             {% for user in config_sections[4]['teachers'] %}
                                                                 <li class="list-group-item">
                                                                     <h5>{{ user['fullname'] }}</h5>
@@ -285,7 +287,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="carousel-item">
-                                                        <div class="list-group overflow-scroll"  style="height: 60vh">
+                                                        <div class="list-group overflow-scroll" style="height: 60vh">
                                                             {% for user in config_sections[4]['maintainers'] %}
                                                                 <li class="list-group-item">
                                                                     <h5>{{ user['fullname'] }}</h5>
@@ -295,7 +297,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="carousel-item">
-                                                        <div class="list-group overflow-scroll"  style="height: 60vh">
+                                                        <div class="list-group overflow-scroll" style="height: 60vh">
                                                             {% for user in config_sections[4]['admins'] %}
                                                                 <li class="list-group-item">
                                                                     <h5>{{ user['fullname'] }}</h5>
@@ -335,14 +337,15 @@
                                     <div class="mb-3">
                                         <label for="InputSECRETKEY" class="form-label">SECRET_KEY</label>
                                         <textarea class="form-control" name="InputSECRETKEY" rows="5"
-                                            placeholder="Put a long string of random characters here, this will be used for encrypting the user session, so that it can't be tampered with"
+                                                  placeholder="Put a long string of random characters here, this will be used for encrypting the user session, so that it can't be tampered with"
                                         ></textarea>
                                     </div>
                                     <div class="row justify-content-between">
                                         <div class="col-auto">
                                             <input type="checkbox" class="btn-check" name="InputFirstRun" id="InputFirstRun"
                                                    autocomplete="off" {% if config_sections[5]['first-run'] == 0 %} checked {% endif %}>
-                                            <label class="btn btn-outline-danger" for="InputFirstRun">Confirm and Lock this Configuration Page</label>
+                                            <label class="btn btn-outline-danger" for="InputFirstRun">
+                                                Confirm and Lock this Configuration Page</label>
                                             <button type="submit"
                                                     class="btn btn-primary">
                                                 Save

@@ -57,7 +57,7 @@ def remove_group(group_id: int):
             where ct.allocationID = (select allocationID from allocation_table where groupID = ?)
         ''', (group_id,))
 
-        with u.proxapi_session() as proxmox:
+        with u.proxapi_session(cursor=cursor) as proxmox:
             u.remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
             cursor.execute('delete from group_table where groupID = ?', (group_id,))
             u.auto_disable_users(proxmox=proxmox, cursor=cursor)
@@ -67,7 +67,7 @@ def remove_group(group_id: int):
 
 @core_app.route('/group/<int:group_id>/members/')
 def edit_members(group_id: int):
-    context = {}
+    context = {'group_id': group_id}
     with u.db_session() as cursor:
         context['group_name'] = u.get_group_name(group_id, cursor=cursor)
         cursor.execute('''
@@ -90,5 +90,6 @@ def edit_members(group_id: int):
         ("Osoby", '#')
     ]
 
-    return render_template('', context=context, pwd=pwd)
+    return render_template('users.html', context=context, pwd=pwd)
+
 

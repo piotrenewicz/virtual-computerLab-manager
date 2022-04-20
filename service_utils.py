@@ -3,6 +3,7 @@ import ldap
 from proxmoxer import ProxmoxAPI, ProxmoxResource
 from data_operations import *
 
+
 def get_ldap_users(kwargs:(None, dict) = None, clean=True):
     if kwargs is None:
         kwargs = get_config_section(1)

@@ -20,10 +20,11 @@ app.register_blueprint(config_app)
 app.register_blueprint(login_app)
 app.register_blueprint(core_app)
 
+
 @app.context_processor
 def inject_default_context():
     return dict(
-        toast_category_map = {
+        toast_category_map={
             'error': 'bg-danger bg-opacity-75 text-light',
             'info': 'bg-warning bg-opacity-75',
             'success': 'bg-success bg-opacity-75 text-light',
@@ -31,10 +32,11 @@ def inject_default_context():
 
     )
 
+
 @app.before_request
 def verify_session():
     if not u.configured or \
-        request.path.startswith((url_for('login.login'), url_for('static', filename=''))):
+            request.path.startswith((url_for('login.login'), url_for('static', filename=''))):
         return None
 
     if not session.get('login'):

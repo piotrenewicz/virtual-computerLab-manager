@@ -19,4 +19,4 @@ def login():
 def logout():
     session.pop('login', None)
     session.pop('permLevel', None)
-    return redirect(request.referrer)
+    return redirect(request.root_url)
