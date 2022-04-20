@@ -65,14 +65,10 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading2">
                         <button class="accordion-button {{ active_section(2, '', 'collapsed') }}" type="button"
-                                data-bs-toggle="{% if config_sections[1]['url'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-toggle="collapse"
                                 data-bs-target="#accordionConfigCollapse2" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse2">
                             Proxmox Settings
-                            {% if not config_sections[1]['url'] %}
-                                <span class="ps-3 pe-1 fas fa-lock"></span>
-                                <small class="text-muted">Set up Ldap connection, to unlock</small>
-                            {% endif %}
                         </button>
                     </h2>
                     <div id="accordionConfigCollapse2"
@@ -118,13 +114,13 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="accordionConfigHeading3">
                         <button class="accordion-button {{ active_section(3, '', 'collapsed') }}" type="button"
-                                data-bs-toggle="{% if config_sections[2]['host'] %}collapse{% else %}disabled{% endif %}"
+                                data-bs-toggle="{% if config_sections[2]['host'] and config_sections[1]['url'] %}collapse{% else %}disabled{% endif %}"
                                 data-bs-target="#accordionConfigCollapse3" aria-expanded="false"
                                 aria-controls="accordionConfigCollapse3">
                             Database Synchronization
-                            {% if not config_sections[2]['host'] %}
+                            {% if not (config_sections[2]['host'] and config_sections[1]['url']) %}
                                 <span class="ps-3 pe-1 fas fa-lock"></span>
-                                <small class="text-muted">Set up a Proxmox connection, to unlock</small>
+                                <small class="text-muted">Set up Proxmox and Ldap connections, to unlock</small>
                             {% endif %}
                         </button>
                     </h2>
