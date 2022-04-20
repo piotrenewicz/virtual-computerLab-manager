@@ -30,24 +30,24 @@
                             <form action="{{ url_for('config.save', target=1) }}" method="post">
                                 <div class="mb-3">
                                     <label for="InputLdapAddress" class="form-label">Ldap Url</label>
-                                    <input type="text" class="form-control" name="InputLdapAddress"
+                                    <input type="text" class="form-control" name="InputLdapAddress" id="InputLdapAddress"
                                            placeholder="ldap://0.0.0.0"
                                            value="{{ request.form['InputLdapAddress'] or config_sections[1]['url'] }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="InputLdapBase" class="form-label">Ldap Base</label>
-                                    <input type="text" class="form-control" name="InputLdapBase"
+                                    <input type="text" class="form-control" name="InputLdapBase" id="InputLdapBase"
                                            placeholder="dc=example,dc=com"
                                            value="{{ request.form['InputLdapBase'] or config_sections[1]['base'] }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="InputLdapFilter" class="form-label">Ldap Filter</label>
-                                    <input type="text" class="form-control" name="InputLdapFilter" placeholder="(objectClass=posixAccount)"
+                                    <input type="text" class="form-control" name="InputLdapFilter" id="InputLdapFilter" placeholder="(objectClass=posixAccount)"
                                            value="{{ request.form['InputLdapFilter'] or config_sections[1]['filter'] }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="InputLdapRealm" class="form-label">This Ldap Server is configured in proxmox as Realm:</label>
-                                    <input type="text" class="form-control" name="InputLdapRealm" placeholder="app_ldap"
+                                    <input type="text" class="form-control" name="InputLdapRealm" id="InputLdapRealm" placeholder="app_ldap"
                                            value="{{ request.form['InputLdapRealm'] or config_sections[1]['realm'] }}">
                                 </div>
                                 <button type="submit"
@@ -78,23 +78,23 @@
                             <form action="{{ url_for('config.save', target=2) }}" method="post">
                                 <div class="mb-3">
                                     <label for="InputProxmoxAddress" class="form-label">Proxmox Address</label>
-                                    <input type="text" class="form-control" name="InputProxmoxAddress"
+                                    <input type="text" class="form-control" name="InputProxmoxAddress" id="InputProxmoxAddress"
                                            placeholder="0.0.0.0"
                                            value="{{ request.form['InputProxmoxAddress'] or config_sections[2]['host'] }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="InputProxmoxUser" class="form-label">Proxmox Login</label>
-                                    <input type="text" class="form-control" name="InputProxmoxUser"
+                                    <input type="text" class="form-control" name="InputProxmoxUser" id="InputProxmoxUser"
                                            placeholder="username@realm"
                                            value="{{ request.form['InputProxmoxUser'] or config_sections[2]['user'] }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="InputProxmoxPass" class="form-label">Proxmox Password</label>
-                                    <input type="password" class="form-control" name="InputProxmoxPass"
+                                    <input type="password" class="form-control" name="InputProxmoxPass" id="InputProxmoxPass"
                                            value="{{ request.form['InputProxmoxPass'] or config_sections[2]['password'] }}">
                                 </div>
                                 <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL"
+                                    <input type="checkbox" class="form-check-input" name="InputProxmoxSSL" id="InputProxmoxSSL"
                                             {% if request.form.get('InputProxmoxSSL') == 'on' or config_sections[2]['verify_ssl'] == 1 %}
                                            checked {% endif %}>
                                     <label class="form-check-label" for="InputProxmoxSSL">Use SSL for Proxmox</label>
@@ -214,7 +214,7 @@
                                         <div class="mb-3">
                                             <label for="InputPermUser" class="form-label">Choose a user</label>
                                             <input class="form-control"
-                                                   list="InputPermUserOptions" name="InputPermUser" placeholder="Type to search...">
+                                                   list="InputPermUserOptions" name="InputPermUser" id="InputPermUser" placeholder="Type to search...">
                                             <datalist id="InputPermUserOptions">
                                                 {% if session.get('preferUserQuery') == 1 %}
                                                     {% for user in config_sections[4]['all_users'] %}
@@ -324,7 +324,7 @@
                                 <form action="{{ url_for('config.confirm_and_lock') }}" method="post">
                                     <div class="mb-3">
                                         <label for="InputSECRETKEY" class="form-label">SECRET_KEY</label>
-                                        <textarea class="form-control" name="InputSECRETKEY" rows="5"
+                                        <textarea class="form-control" name="InputSECRETKEY" id="InputSECRETKEY" rows="5"
                                                   placeholder="Put a long string of random characters here, this will be used for encrypting the user session, so that it can't be tampered with"
                                         ></textarea>
                                     </div>
