@@ -208,33 +208,22 @@
                         <div class="accordion-body">
                             <div class="row">
                                 <div class="col-12 col-md-5">
-                                    <form name="InputPermTypeForm" method="post">
-                                        <div class="form-label">Select user by</div>
-                                        <div class="mb-3">
-                                            <button type="submit" formaction="{{ url_for('config.set_permission_by', handle_type=1 ) }}"
-                                                    class="btn {% if session.get('config/setPermType') == 1 %} btn-primary {% else %} btn-outline-primary {% endif %}">
-                                                User Login
-                                            </button>
-                                            <button type="submit" formaction="{{ url_for('config.set_permission_by', handle_type=2 ) }}"
-                                                    class="btn {% if session.get('config/setPermType') == 2 %} btn-primary {% else %} btn-outline-primary {% endif %}">
-                                                User Name
-                                            </button>
-                                        </div>
-                                    </form>
-                                    <form name="InputPerm" action="{{ url_for('config.set_permission') }}" method="post">
+                                    {% include 'common/userTypeSelect.html' %}
+                                    <form name="InputPerm" action="{{ url_for('config.set_permission') }}"
+                                          method="post">
                                         <div class="mb-3">
                                             <label for="InputPermUser" class="form-label">Choose a user</label>
                                             <input class="form-control"
                                                    list="InputPermUserOptions" name="InputPermUser" placeholder="Type to search...">
                                             <datalist id="InputPermUserOptions">
-                                                {% if session.get('config/setPermType') == 1 %}
+                                                {% if session.get('preferUserQuery') == 1 %}
                                                     {% for user in config_sections[4]['all_users'] %}
                                                         <option value="{{ user['userID'] }}">
                                                     {% endfor %}
-                                                {% elif session.get('config/setPermType') == 2 %}
-                                                    {% for user in config_sections[4]['all_users'] %}
-                                                        <option value="{{ user['fullname'] }}">
-                                                    {% endfor %}
+                                                {% elif session.get('preferUserQuery') == 2 %}
+                                                {% for user in config_sections[4]['all_users'] %}
+                                                    <option value="{{ user['fullname'] }}">
+                                                {% endfor %}
                                                 {% endif %}
                                             </datalist>
                                         </div>
@@ -247,7 +236,10 @@
                                                 <option value="4">Admin</option>
                                             </select>
                                         </div>
-                                        <button type="submit" class="btn btn-primary {% if not session.get('config/setPermType') %} disabled {% endif %}">Set Permission</button>
+                                        <button type="submit"
+                                                class="btn btn-primary {% if not session.get('preferUserQuery') %} disabled {% endif %}">
+                                            Set Permission
+                                        </button>
                                     </form>
                                 </div>
                                 <div class="col-12 col-md-7">

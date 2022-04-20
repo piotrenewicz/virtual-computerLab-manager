@@ -52,26 +52,21 @@ def set_permission():
     session['config/active_section'] = 4
     data = u.form_reader(4)
     print(data)
-    with u.db_session() as cursror:
-        if session['config/setPermType'] == 2:
-            cursror.execute('select userID from user_table where fullname = ?', (data['userID'],))
-            data['userID'] = u.one_row_fix(cursror.fetchone())
+    with u.db_session() as cursor:
+        if session['preferUserQuery'] == 2:
+            cursor.execute('select userID from user_table where fullname = ?', (data['userID'],))
+            data['userID'] = u.one_row_fix(cursor.fetchone())
 
-        cursror.execute('update user_table set userPermission = ? where userID = ?', (data['perm'], data['userID']))
+        cursor.execute('update user_table set userPermission = ? where userID = ?', (data['perm'], data['userID']))
 
-        with u.proxapi_session(cursor=cursror) as proxmox:
+        with u.proxapi_session(cursor=cursor) as proxmox:
             if data['perm'] == -1:
-                u.auto_disable_users(proxmox=proxmox, cursor=cursror)
+                u.auto_disable_users(proxmox=proxmox, cursor=cursor)
             else:
-                u.user_enable(data['userID'], realm=u.get_config_value('realm', cursor=cursror), proxmox=proxmox)
+                u.user_enable(data['userID'], realm=u.get_config_value('realm', cursor=cursor), proxmox=proxmox)
 
     return redirect(request.referrer or '/', code=307)
 
-@config_app.route('/config/set_permission/<int:handle_type>', methods=('POST',))
-def set_permission_by(handle_type):
-    session['config/active_section'] = 4
-    session['config/setPermType'] = handle_type
-    return redirect(request.referrer, code=307)
 
 @config_app.route('/config/finish', methods=('POST',))
 def confirm_and_lock():

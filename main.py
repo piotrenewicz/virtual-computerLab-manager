@@ -51,6 +51,12 @@ def verify_session():
         return redirect(request.referrer or '/')
 
 
+@app.route('/set_preferred_userquery/<int:handle_type>', methods=('POST',))
+def user_type_select(handle_type):
+    session['preferUserQuery'] = handle_type
+    return redirect(request.referrer or '/')
+
+
 @app.route('/')
 def index():
     return redirect(url_for('core.overview' if u.configured else 'config.configuration'))

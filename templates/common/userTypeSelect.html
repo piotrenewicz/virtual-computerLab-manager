@@ -1,0 +1,13 @@
+<form name="InputUserTypeForm" method="post">
+    <div class="form-label">Select user by</div>
+    <div class="mb-3">
+        <button type="submit" formaction="{{ url_for('user_type_select', handle_type=1 ) }}"
+                class="btn {% if session.get('preferUserQuery') == 1 %} btn-primary {% else %} btn-outline-primary {% endif %}">
+            User Login
+        </button>
+        <button type="submit" formaction="{{ url_for('user_type_select', handle_type=2 ) }}"
+                class="btn {% if session.get('preferUserQuery') == 2 %} btn-primary {% else %} btn-outline-primary {% endif %}">
+            User Name
+        </button>
+    </div>
+</form>
