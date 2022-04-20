@@ -20,7 +20,7 @@ def configuration():
 def check_connection(target):
     session['config/active_section'] = target
     session['check/'+str(target)] = u.validate_connection_params(target)
-    return redirect(request.referrer, code=307)
+    return redirect(request.referrer or '/', code=307)
 
 
 @config_app.route('/config/save/<int:target>', methods=('POST',))
@@ -34,7 +34,7 @@ def save(target):
     else:
         session['check/'+str(target)] = False
         session['config/active_section'] = target
-    return redirect(request.referrer, code=307)
+    return redirect(request.referrer or '/', code=307)
 
 @config_app.route('/config/sync/<int:target>', methods=('POST', 'GET'))  # VM Maintainers, trigger this from account menu, which can't make POST requests.
 def sync_database(target):
@@ -45,7 +45,7 @@ def sync_database(target):
             with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
                 u.sync_proxmox(cursor=cursor, proxmox=proxmox)
 
-    return redirect(request.referrer, code=307)
+    return redirect(request.referrer or '/', code=307)
 
 @config_app.route('/config/set_permission', methods=('POST',))
 def set_permission():
@@ -65,7 +65,7 @@ def set_permission():
             else:
                 u.user_enable(data['userID'], realm=u.get_config_value('realm', cursor=cursror), proxmox=proxmox)
 
-    return redirect(request.referrer, code=307)
+    return redirect(request.referrer or '/', code=307)
 
 @config_app.route('/config/set_permission/<int:handle_type>', methods=('POST',))
 def set_permission_by(handle_type):
@@ -77,7 +77,7 @@ def set_permission_by(handle_type):
 def confirm_and_lock():
     if not session.get('permLevel') == 4:
         flash('Permission Missing', 'error')
-        return redirect(request.referrer)
+        return redirect(request.referrer or '/')
 
     data = u.form_reader(5)
     with u.db_session() as cursor:
@@ -90,4 +90,4 @@ def confirm_and_lock():
     session['config/active_section'] = 5
     flash("Restart the web server for settings to take effect!", 'info')
     request.get_data() # clearing form data just in case
-    return redirect(request.referrer)
+    return redirect(request.referrer or '/')

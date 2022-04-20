@@ -48,7 +48,7 @@ def verify_session():
 
     if request.path.startswith(url_for('config.configuration')) and session.get('permLevel') != 4:
         flash('Brak Uprawnień, Odmowa Dostępu', 'error')
-        return redirect(request.referrer)
+        return redirect(request.referrer or '/')
 
 
 @app.route('/')
@@ -60,7 +60,8 @@ def index():
 @app.errorhandler(requests.exceptions.RequestException)
 def handle_proxmox_errors(error):
     flash(traceback.format_exc(), 'error')
-    return redirect(request.referrer)
+    return redirect(request.referrer or '/')
+
 
 # great idea for production, when you don't want to leak server code.
 # @app.errorhandler(Exception)
