@@ -120,7 +120,7 @@ def add_user(group_id: int):
     user_id = request.form.get('InputUser')
     if user_id:
         with u.db_session() as cursor:
-            if session['preferUserQuery'] == 2:
+            if not session.get('preferUserQuery'):
                 cursor.execute('select userID from user_table where fullname = ?', (user_id,))
                 user_id = u.one_row_fix(cursor.fetchone())
 

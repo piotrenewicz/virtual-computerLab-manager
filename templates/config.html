@@ -216,14 +216,14 @@
                                             <input class="form-control"
                                                    list="InputPermUserOptions" name="InputPermUser" id="InputPermUser" placeholder="Type to search...">
                                             <datalist id="InputPermUserOptions">
-                                                {% if session.get('preferUserQuery') == 1 %}
+                                                {% if session.get('preferUserQuery') %}
                                                     {% for user in config_sections[4]['all_users'] %}
                                                         <option value="{{ user['userID'] }}">
                                                     {% endfor %}
-                                                {% elif session.get('preferUserQuery') == 2 %}
-                                                {% for user in config_sections[4]['all_users'] %}
-                                                    <option value="{{ user['fullname'] }}">
-                                                {% endfor %}
+                                                {% else %}
+                                                    {% for user in config_sections[4]['all_users'] %}
+                                                        <option value="{{ user['fullname'] }}">
+                                                    {% endfor %}
                                                 {% endif %}
                                             </datalist>
                                         </div>
@@ -237,7 +237,7 @@
                                             </select>
                                         </div>
                                         <button type="submit"
-                                                class="btn btn-primary {% if not session.get('preferUserQuery') %} disabled {% endif %}">
+                                                class="btn btn-primary">
                                             Set Permission
                                         </button>
                                     </form>

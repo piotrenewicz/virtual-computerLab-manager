@@ -53,7 +53,7 @@ def set_permission():
     data = u.form_reader(4)
     print(data)
     with u.db_session() as cursor:
-        if session['preferUserQuery'] == 2:
+        if not session.get('preferUserQuery'):
             cursor.execute('select userID from user_table where fullname = ?', (data['userID'],))
             data['userID'] = u.one_row_fix(cursor.fetchone())
 

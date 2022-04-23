@@ -35,18 +35,18 @@
         <div class="input-group mb-3">
             <input class="form-control" name="InputUser" id="InputUser" list="InputUserOptions" placeholder="Type to search...">
             <datalist id="InputUserOptions">
-                {% if session.get('preferUserQuery') == 1 %}
+                {% if session.get('preferUserQuery') %}
                     {% for user in context['remainder'] %}
                         <option value="{{ user['userID'] }}">
                     {% endfor %}
-                {% elif session.get('preferUserQuery') == 2 %}
-                {% for user in context['remainder'] %}
-                    <option value="{{ user['fullname'] }}">
-                {% endfor %}
+                {% else %}
+                    {% for user in context['remainder'] %}
+                        <option value="{{ user['fullname'] }}">
+                    {% endfor %}
                 {% endif %}
             </datalist>
             <button type="submit"
-                    class="btn btn-primary {% if not session.get('preferUserQuery') %} disabled {% endif %}">
+                    class="btn btn-primary">
                 <span class="fas fa-user-plus pe-2"></span>Dodaj
             </button>
         </div>
