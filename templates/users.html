@@ -29,27 +29,10 @@
 
 
 {% block content %}
-    {% include 'common/userTypeSelect.html' %}
     <form name="InputAddUser" action="{{ url_for('core.add_user', group_id=context['group_id']) }}" method="post">
-        <label for="InputUser" class="form-label">Dodaj osobę do grupy</label>
-        <div class="input-group mb-3">
-            <input class="form-control" name="InputUser" id="InputUser" list="InputUserOptions" placeholder="Type to search...">
-            <datalist id="InputUserOptions">
-                {% if session.get('preferUserQuery') %}
-                    {% for user in context['remainder'] %}
-                        <option value="{{ user['userID'] }}">
-                    {% endfor %}
-                {% else %}
-                    {% for user in context['remainder'] %}
-                        <option value="{{ user['fullname'] }}">
-                    {% endfor %}
-                {% endif %}
-            </datalist>
-            <button type="submit"
-                    class="btn btn-primary">
-                <span class="fas fa-user-plus pe-2"></span>Dodaj
-            </button>
-        </div>
+        {% with label = "Dodaj osobę do grupy", user_datalist = context['remainder'], submit = '<span class="fas fa-user-plus pe-2"></span>Dodaj' %}
+            {% include 'common/userTypeSelect.html' %}
+        {% endwith %}
     </form>
 
 {#    MARKER HERE#}

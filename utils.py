@@ -51,8 +51,8 @@ def form_reader(section):
                 'verify_ssl': 0 if request.form.get('InputProxmoxSSL') is None else 1
             }
         case 4: return {
-                'userID': request.form.get('InputPermUser'),
-                'perm': int(request.form.get('InputPermPerm'))
+                'userID': request.form.get('InputUser'),
+                'perm': int(request.form.get('InputPerm'))
             }
         case 5: return {
                 'SECRET_KEY': request.form.get('InputSECRETKEY'),

@@ -54,6 +54,7 @@ def verify_session():
 @app.route('/set_preferred_userquery/<int:handle_type>', methods=('POST',))
 def user_type_select(handle_type):
     session['preferUserQuery'] = handle_type
+    _ = request.get_data()
     return redirect(request.referrer or '/')
 
 

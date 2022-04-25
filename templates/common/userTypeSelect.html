@@ -1,13 +1,36 @@
-<form name="InputUserTypeForm" method="post">
-    <div class="form-label">Select user by</div>
-    <div class="mb-3">
-        <button type="submit" formaction="{{ url_for('user_type_select', handle_type=0 ) }}"
-                class="btn {% if not session.get('preferUserQuery') %} btn-primary {% else %} btn-outline-primary {% endif %}">
-            Imienia
-        </button>
-        <button type="submit" formaction="{{ url_for('user_type_select', handle_type=1 ) }}"
-                class="btn {% if session.get('preferUserQuery') %} btn-primary {% else %} btn-outline-primary {% endif %}">
-            Login
-        </button>
+<label for="InputUser" class="form-label">
+    <div class="row">
+        <div class="col-auto me-2">
+            {{ label }}
+        </div>
+        <small class="col-auto pe-1 text-muted">Użyj:</small>
+        <div class="col-auto ps-0 btn-group btn-group-sm">
+            <button type="submit" formaction="{{ url_for('user_type_select', handle_type=0 ) }}"
+                    class="py-0 btn {% if not session.get('preferUserQuery') %} btn-primary {% else %} btn-outline-primary {% endif %}">
+                <small>Imię</small>
+            </button>
+            <button type="submit" formaction="{{ url_for('user_type_select', handle_type=1 ) }}"
+                    class="py-0 btn {% if session.get('preferUserQuery') %} btn-primary {% else %} btn-outline-primary {% endif %}">
+                <small>Login</small>
+            </button>
+        </div>
     </div>
-</form>
+</label>
+{#<div class="form-label">Select user by</div>#}
+<div class="{% if submit %}input-group {% endif %}mb-3">
+        <input class="form-control" name="InputUser" id="InputUser" list="InputUserOptions" placeholder="Type to search...">
+        <datalist id="InputUserOptions">
+            {% if session.get('preferUserQuery') %}
+                {% for user in user_datalist %}
+                    <option value="{{ user['userID'] }}">
+                {% endfor %}<span class="fas fa-user-plus pe-2"></span>Dodaj
+            {% else %}
+                {% for user in user_datalist %}
+                    <option value="{{ user['fullname'] }}">
+                {% endfor %}
+            {% endif %}
+        </datalist>
+        {% if submit %}
+            <button type="submit" class="btn btn-primary">{{ submit|safe }}</button>
+        {% endif %}
+</div>

@@ -208,38 +208,21 @@
                         <div class="accordion-body">
                             <div class="row">
                                 <div class="col-12 col-md-5">
-                                    {% include 'common/userTypeSelect.html' %}
                                     <form name="InputPerm" action="{{ url_for('config.set_permission') }}"
                                           method="post">
+                                        {% with label = "Choose a user", user_datalist = config_sections[4]['all_users'], submit = False %}
+                                            {% include 'common/userTypeSelect.html' %}
+                                        {% endwith %}
                                         <div class="mb-3">
-                                            <label for="InputPermUser" class="form-label">Choose a user</label>
-                                            <input class="form-control"
-                                                   list="InputPermUserOptions" name="InputPermUser" id="InputPermUser" placeholder="Type to search...">
-                                            <datalist id="InputPermUserOptions">
-                                                {% if session.get('preferUserQuery') %}
-                                                    {% for user in config_sections[4]['all_users'] %}
-                                                        <option value="{{ user['userID'] }}">
-                                                    {% endfor %}
-                                                {% else %}
-                                                    {% for user in config_sections[4]['all_users'] %}
-                                                        <option value="{{ user['fullname'] }}">
-                                                    {% endfor %}
-                                                {% endif %}
-                                            </datalist>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="InputPermPerm" class="form-label">Choose Permission</label>
-                                            <select class="form-select" name="InputPermPerm" aria-label="Select Permission To apply">
+                                            <label for="InputPerm" class="form-label">Choose Permission</label>
+                                            <select class="form-select" name="InputPerm" aria-label="Select Permission To apply">
                                                 <option value="-1">Remove Permission</option>
                                                 <option value="2" selected>Teacher</option>
                                                 <option value="3">VM Maintainer</option>
                                                 <option value="4">Admin</option>
                                             </select>
                                         </div>
-                                        <button type="submit"
-                                                class="btn btn-primary">
-                                            Set Permission
-                                        </button>
+                                        <button type="submit" class="btn btn-primary">Set Permission</button>
                                     </form>
                                 </div>
                                 <div class="col-12 col-md-7">
