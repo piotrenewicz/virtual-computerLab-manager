@@ -27,7 +27,7 @@
 
 
 {% block content %}
-    <form action="{{ url_for('core.group_detail', group_id=context['id']) }}" method="post">
+    <form action="{{ url_for('core.group_edit', group_id=context['id']) }}" method="post">
         <div class="row mb-2">
             <label for="InputGroupName" id="InputGroupNameLabel" class="col-sm-3 col-form-label text-end">Ustaw nazwę grupy</label>
             <div class="col-sm-9">
@@ -47,7 +47,7 @@
             Osób
         </div>
         <div class="col-5">
-            <a class="btn w-100 btn-primary" href="{{ url_for('core.edit_members', group_id=context['id']) }}">Zarządzaj Osobami</a>
+            <a class="btn w-100 btn-primary" href="{{ url_for('core.user_list', group_id=context['id']) }}">Zarządzaj Osobami</a>
         </div>
     </div>
     <div class="row mb-2 align-items-center">

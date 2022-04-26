@@ -6,7 +6,7 @@ core_app = Blueprint('core', __name__, template_folder='templates')
 
 
 @core_app.route('/group-overview', methods=('GET', 'POST'))
-def overview():
+def group_list():
     search = '%'
     if request.method == 'POST':
         search = f'%{u.form_reader("search")["search"]}%'
@@ -18,7 +18,7 @@ def overview():
 
 
 @core_app.route('/group/<int:group_id>/', methods=('POST', 'GET'))
-def group_detail(group_id: int):
+def group_edit(group_id: int):
     context = {'id': group_id}
     with u.db_session() as cursor:
         if request.method == 'POST':
@@ -43,7 +43,7 @@ def add_group():
         cursor.execute('update group_table set groupName = ? where groupID = ?',
                        (f"Grupa{new_id}", new_id))
 
-    return redirect(url_for('core.group_detail', group_id=new_id))
+    return redirect(url_for('core.group_edit', group_id=new_id))
 
 
 @core_app.route('/group/<int:group_id>/remove/')
@@ -66,7 +66,7 @@ def remove_group(group_id: int):
 
 
 @core_app.route('/group/<int:group_id>/members/')
-def edit_members(group_id: int):
+def user_list(group_id: int):
     context = {'group_id': group_id}
     with u.db_session() as cursor:
         context['group_name'] = u.get_group_name(group_id, cursor=cursor)
@@ -86,7 +86,7 @@ def edit_members(group_id: int):
         context['remainder'] = cursor.fetchall()
 
     pwd = [
-        ("Grupa:"+context['group_name'], url_for('core.group_detail', group_id=group_id)),
+        ("Grupa:"+context['group_name'], url_for('core.group_edit', group_id=group_id)),
         ("Osoby", '#')
     ]
 

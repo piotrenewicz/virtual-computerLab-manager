@@ -60,7 +60,7 @@ def user_type_select(handle_type):
 
 @app.route('/')
 def index():
-    return redirect(url_for('core.overview' if u.configured else 'config.configuration'))
+    return redirect(url_for('core.group_list' if u.configured else 'config.configuration'))
 
 
 @app.errorhandler(KeyError)

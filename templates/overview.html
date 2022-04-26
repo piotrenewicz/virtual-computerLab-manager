@@ -8,7 +8,7 @@
 {% block content %}
     <div class="row">
         <div class="col-12">
-            <form action="{{ url_for('core.overview') }}" method="post">
+            <form action="{{ url_for('core.group_list') }}" method="post">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" name="InputSearch" placeholder="Search groups"
                            aria-label="Search groups" aria-describedby="search-button" value="{{ request.form['InputSearch'] }}">
@@ -22,7 +22,7 @@
 
     <div class="list-group">
         {% for group in groups %}
-            <a class="list-group-item list-group-item-action {{ loop.cycle('bg-light', 'bg-white') }}" href="{{ url_for('core.group_detail', group_id=group['groupID']) }}">
+            <a class="list-group-item list-group-item-action {{ loop.cycle('bg-light', 'bg-white') }}" href="{{ url_for('core.group_edit', group_id=group['groupID']) }}">
                 <div class="row justify-content-between">
                     <div class="col-auto">{{ group['groupName'] }}</div>
                     <span class="col-auto fas fa-chevron-right"></span>
