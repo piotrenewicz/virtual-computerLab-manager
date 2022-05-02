@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %} Controller: Dependents of Template {% endblock %}
+
+{% block navigation_area %}
+    {% with pwd = [("Przydzielenia wzorów", '#')] %}
+        {% include 'common/navigation.html' with context %}
+    {% endwith %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="accordion" id="accRoot">
+        {% for node_id, node_data in cluster.items() %}
+            {% with super_index = loop.index, grand_index = 'Root' %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="accH{{ super_index }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#accC{{ super_index }}" aria-expanded="true"
+                                aria-controls="accC{{ super_index }}">
+                            Node: {{ node_id }}
+                        </button>
+                    </h2>
+                    <div id="accC{{ super_index }}" class="accordion-collapse collapse"
+                         aria-labelledby="accH{{ super_index }}"
+                         data-bs-parent="#acc{{ grand_index }}">
+                        <div class="accordion-body">
+                            <div class="accordion" id="acc{{ super_index }}">
+                                {% for template_id, template_allocs in node_data.items() %}
+                                    {% with grand_index = super_index, super_index = '{0}_{1}'.format(super_index, loop.index) %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="accH{{ super_index }}">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#accC{{ super_index }}" aria-expanded="true"
+                                                        aria-controls="accC{{ super_index }}">
+                                                    Template: {{ template_id }}
+                                                    <small class="text-muted ps-2">({{ template_allocs|count }})</small>
+                                                </button>
+                                            </h2>
+                                            <div id="accC{{ super_index }}" class="accordion-collapse collapse"
+                                                 aria-labelledby="accH{{ super_index }}"
+                                                 data-bs-parent="#acc{{ grand_index }}">
+                                                <div class="accordion-body">
+                                                    <div class="list-group">
+                                                        {% for alloc_data in template_allocs %}
+                                                            <a class="list-group-item list-group-item-action {{ loop.cycle('bg-light', 'bg-white') }}"
+                                                               href="{{ url_for('core.alloc_edit', group_id=alloc_data['groupID'], alloc_id=alloc_data['allocationID']) }}">
+                                                                <div class="row justify-content-between">
+                                                                    <div class="col-auto">
+                                                                        Przydział
+                                                                        #{{ alloc_data['allocationID'] }}: {{ alloc_data['allocationName'] }}
+                                                                    </div>
+                                                                    <span class="col-auto fas fa-chevron-right"></span>
+                                                                </div>
+                                                            </a>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+{% endblock %}

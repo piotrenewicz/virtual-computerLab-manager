@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, url_for, redirect, session, f
 from subviews.configview import config_app
 from subviews.loginview import login_app
 from subviews.coreview import core_app
+from subviews.dependentsview import dependency_app
 
 app = Flask(__name__)
 u.configured = u.check_configured()
@@ -19,6 +20,7 @@ app.config.update(
 app.register_blueprint(config_app)
 app.register_blueprint(login_app)
 app.register_blueprint(core_app)
+app.register_blueprint(dependency_app)
 
 
 @app.context_processor
