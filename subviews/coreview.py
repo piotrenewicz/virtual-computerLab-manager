@@ -30,7 +30,7 @@ def group_edit(group_id: int):
         cursor.execute('select count(groupID) from allocation_table where groupID = ?', (group_id,))
         context['alloc_count'] = u.one_row_fix(cursor.fetchone())
 
-    pwd = [("Grupa:"+context['name'], '#')]
+    pwd = [(context['name'], '#')]
 
     return render_template('group.html', context=context, pwd=pwd)
 
@@ -38,7 +38,7 @@ def group_edit(group_id: int):
 @core_app.route('/group-new/')
 def add_group():
     with u.db_session() as cursor:
-        cursor.execute("insert into group_table(groupName) values ('Error') RETURNING groupID;")
+        cursor.execute("insert into group_table(groupName) values ('Grupa?') returning groupID;")
         new_id = u.one_row_fix(cursor.fetchone())
         cursor.execute('update group_table set groupName = ? where groupID = ?',
                        (f"Grupa{new_id}", new_id))
@@ -86,7 +86,7 @@ def user_list(group_id: int):
         context['remainder'] = cursor.fetchall()
 
     pwd = [
-        ("Grupa:"+context['group_name'], url_for('core.group_edit', group_id=group_id)),
+        (context['group_name'], url_for('core.group_edit', group_id=group_id)),
         ("Osoby", '#')
     ]
     return render_template('users.html', context=context, pwd=pwd)
