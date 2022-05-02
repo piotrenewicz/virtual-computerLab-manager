@@ -25,7 +25,7 @@ def group_edit(group_id: int):
             cursor.execute('update group_table set groupName = ? where groupID = ?',
                            (request.form.get('InputGroupName'), group_id))
         context['name'] = u.get_group_name(group_id, cursor=cursor)
-        cursor.execute('''select count(groupID) from group_content where groupID = ?''', (group_id,))
+        cursor.execute('select count(groupID) from group_content where groupID = ?', (group_id,))
         context['member_count'] = u.one_row_fix(cursor.fetchone())
         cursor.execute('select count(groupID) from allocation_table where groupID = ?', (group_id,))
         context['alloc_count'] = u.one_row_fix(cursor.fetchone())
@@ -89,7 +89,6 @@ def user_list(group_id: int):
         ("Grupa:"+context['group_name'], url_for('core.group_edit', group_id=group_id)),
         ("Osoby", '#')
     ]
-
     return render_template('users.html', context=context, pwd=pwd)
 
 

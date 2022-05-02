@@ -63,8 +63,14 @@ def index():
     return redirect(url_for('core.group_list' if u.configured else 'config.configuration'))
 
 
-@app.errorhandler(KeyError)
 @app.errorhandler(requests.exceptions.RequestException)
+@app.errorhandler(u.ResourceException)
+def handle_basic_error(error):
+    flash(error.__repr__(), 'error')
+    return redirect(request.referrer or '/')
+
+
+@app.errorhandler(KeyError)
 def handle_proxmox_errors(error):
     flash(traceback.format_exc(), 'error')
     return redirect(request.referrer or '/')

@@ -1,10 +1,11 @@
 import sqlite3
 
+
 class db_session(object):
     def __init__(self, filename='database.db'):
         self.filename = filename
 
-    def __enter__(self):
+    def __enter__(self) -> sqlite3.Cursor:
         self.conn = sqlite3.connect(self.filename)
         self.conn.isolation_level = None
         self.conn.row_factory = sqlite3.Row
@@ -38,10 +39,12 @@ def one_row_fix(row: (sqlite3.Row, None)):
         return row[0]
     return dict(row)
 
+
 @with_database
 def get_config_section(section: int, cursor: sqlite3.Cursor):
     cursor.execute('select option, value from config where section == ?', (section,))
     return {row['option']: row['value'] for row in cursor.fetchall()}
+
 
 @with_database
 def get_config_value(option: str, cursor: sqlite3.Cursor):

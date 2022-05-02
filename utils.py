@@ -1,8 +1,7 @@
-import sqlite3
-
 from service_utils import *
 from flask import session, request, flash
 configured = None
+
 
 def check_configured():
     try:
@@ -17,7 +16,6 @@ def check_configured():
         case 1: return False
         case 0: return True
         case _: raise Exception("Non-binary first-run value!")
-
 
 
 def active_section(section_id, when_active, when_hidden):
@@ -35,34 +33,39 @@ def active_section(section_id, when_active, when_hidden):
     return when_hidden
 
 
-
 def form_reader(section):
     match section:
-        case 1: return {
+        case 1:
+            return {
                 'url': request.form.get('InputLdapAddress'),
                 'base': request.form.get('InputLdapBase'),
                 'filter': request.form.get('InputLdapFilter'),
                 'realm': request.form.get('InputLdapRealm')
             }
-        case 2: return {
+        case 2:
+            return {
                 'host': request.form.get('InputProxmoxAddress'),
                 'user': request.form.get('InputProxmoxUser'),
                 'password': request.form.get('InputProxmoxPass'),
                 'verify_ssl': 0 if request.form.get('InputProxmoxSSL') is None else 1
             }
-        case 4: return {
+        case 4:
+            return {
                 'userID': request.form.get('InputUser'),
                 'perm': int(request.form.get('InputPerm'))
             }
-        case 5: return {
+        case 5:
+            return {
                 'SECRET_KEY': request.form.get('InputSECRETKEY'),
                 'first-run': 0 if request.form.get('InputFirstRun') else 1
             }
-        case 'login': return {
+        case 'login':
+            return {
                 'login': request.form.get('InputAppLogin'),
                 'pass': request.form.get('InputAppPassword')
             }
-        case 'search': return {
+        case 'search':
+            return {
                 'search': request.form.get('InputSearch')
             }
 

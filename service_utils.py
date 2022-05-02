@@ -1,6 +1,6 @@
 import time
 import ldap
-from proxmoxer import ProxmoxAPI, ProxmoxResource
+from proxmoxer import ProxmoxAPI, ProxmoxResource, ResourceException  # ResourceException from here is used in main
 from data_operations import *
 
 
@@ -72,38 +72,21 @@ def ldap_sync(cursor: sqlite3.Cursor):
 
     cursor.execute('replace into config(option, section, value) VALUES ("ldap_usercount", 3, ?)', (usercount,))
     cursor.execute('replace into config(option, section, value) values ("ldap_syncdate", 3, CURRENT_TIMESTAMP)')
+# def end ldap_sync
 
 
-class proxapi_session(object): # use nesting, have a proxmox security wrapper double with this one throws on enter, external with will catch as exit skip block and flash
+class proxapi_session(object):
     @with_database
-    def __init__(self, path = '/', *, cursor:sqlite3.Cursor):
+    def __init__(self, path: str = '/', *, cursor: sqlite3.Cursor):
         self.params = get_config_section(2, cursor=cursor)
         self.path = path
 
-    def __enter__(self):
+    def __enter__(self) -> ProxmoxResource:
         self.proxmox = ProxmoxAPI(**self.params)
         return self.proxmox(self.path)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-
-#
-# # I don't like the following bit of code, proxmoxResource could be of any path, No decoration here, let's just require a session
-# def with_proxapi(function_or_path):
-#     path = function_or_path if type(function_or_path) == str else '/'
-#     def decorator(function):
-#         def wrapped(*args, **kwargs):
-#             if kwargs.get('proxmox') == ProxmoxResource:
-#                 return function(*args, **kwargs)
-#
-#             with proxapi_session(path) as proxmox:
-#                 result = function(*args, **kwargs, proxmox=proxmox)
-#             return result
-#
-#         return wrapped
-#
-#     return decorator if type(function_or_path) == str else decorator(function_or_path)
-
 
 
 @with_database
@@ -133,7 +116,7 @@ def shutdown_clones(clone_list: list, block=False, *, proxmox: ProxmoxResource):
                     done = False  # and lose hope that we are done already.
 
 
-def user_enable(userid, realm, enable = True, *, proxmox: ProxmoxResource):
+def user_enable(userid, realm, enable=True, *, proxmox: ProxmoxResource):
     proxmox.access.users(userid+"@"+realm).put(enable=int(enable))
 
 
@@ -150,30 +133,12 @@ def sync_proxmox(proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
 
     # step1 compare type 0 with db types 0,
     #       if missing in current, remove (with manual 1:1 cascading into clone_table)
-    cursor.execute('''
-        delete from clone_table
-        where cloneID = (
-            select vmid from vmid_table
-            where type = 0 and vmid not in (
-                select vmid from vm_sync where type = 0
-            )
-        );
-    ''')
-    cursor.execute('''
-        delete from vmid_table
-        where type = 0 and vmid not in (
-            select vmid from vm_sync where type = 0
-        )
-    ''')
+    cursor.execute('delete from clone_table where cloneID not in (select vmid from vm_sync where type = 0);')
+    cursor.execute('delete from vmid_table where type = 0 and vmid not in (select vmid from vm_sync where type = 0)')
 
     # step2 compare type 1 with db type 1,
     #       if not found, remove cascade delete clones and template (call template remove, expect KeyError on proxmox call to remove template)
-    cursor.execute('''
-        select vmid, node from vmid_table
-        where type = 1 and vmid not in (
-            select vmid from vm_sync where type = 1
-        )
-    ''')
+    cursor.execute('select vmid, node from vmid_table where type = 1 and vmid not in (select vmid from vm_sync where type = 1)')
     remove_templates(cursor.fetchall(), inform_proxmox=False, proxmox=proxmox, cursor=cursor)
 
     # step1 compare type 0 with db types 0,
@@ -182,24 +147,21 @@ def sync_proxmox(proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
     #       if node doesn't match update,
     cursor.execute('''
         update vmid_table
-        set node = (select node from vm_sync where vmid = vmid_table.vmid)
-        where node <> (select node from vm_sync where vmid = vmid_table.vmid)
+        set node = (select node from vm_sync where vm_sync.vmid = vmid_table.vmid)
+        where node <> (select node from vm_sync where vm_sync.vmid = vmid_table.vmid)
     ''')
 
     # step2 compare type 1 with db type 1,
     #       if new add as type 1, insert add (in current data population design, collision here is impossible)
-    cursor.execute('''
-        insert into vmid_table(vmid, type, node) 
-            select vmid, type, node from vm_sync
-            where type = 1 and vmid not in (
-                select vmid from vmid_table
-            )
-    ''')
+    cursor.execute('''insert into vmid_table(vmid, type, node) select vmid, type, node from vm_sync
+            where type = 1 and vmid not in (select vmid from vmid_table)''')
     cursor.execute('drop table vm_sync')
 
-    cursor.execute(
-        'replace into config(option, section, value) values ("proxmox_templatecount", 3, (select count(vmid) from vmid_table where type = 1))')
+    cursor.execute('''replace into config(option, section, value) values 
+        ("proxmox_templatecount", 3, (select count(vmid) from vmid_table where type = 1))''')
     cursor.execute('replace into config(option, section, value) values ("proxmox_syncdate", 3, CURRENT_TIMESTAMP)')
+# def end sync_proxmox
+
 
 @with_database
 def remove_templates(template_list: list, inform_proxmox=True, *, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
