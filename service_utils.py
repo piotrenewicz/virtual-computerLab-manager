@@ -91,7 +91,7 @@ class proxapi_session(object):
 
 @with_database
 def remove_clones(clone_list: list, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
-    shutdown_clones(clone_list, block=True, proxmox=proxmox)
+    power_clones(clone_list, block=True, proxmox=proxmox)
 
     for clone in clone_list:
         proxmox.nodes(clone['node']).qemu(clone['vmid']).delete()
@@ -100,20 +100,21 @@ def remove_clones(clone_list: list, proxmox: ProxmoxResource, cursor: sqlite3.Cu
         cursor.execute('delete from vmid_table where vmid = ?;', (clone['vmid'],))
 
 
-def shutdown_clones(clone_list: list, block=False, *, proxmox: ProxmoxResource):
-    for clone in clone_list:
-        proxmox.nodes(clone['node']).qemu(clone['vmid']).status.shutdown.post()
+def power_clones(clone_list: list, block=False, shutdown=True, *, proxmox: ProxmoxResource):
+    action, target_status = ('shutdown', 'stopped') if shutdown else ('start', 'running')
 
-    if block:  # if we want to wait for shutdown
-        done = False  # assume we are not done, as we haven't checked
-        while not done:  # keep trying
-            time.sleep(2) # give the clones some time to attempt shutdown.
-            done = True  # hope that we are done.
-            for clone in clone_list:  # check all clones
-                clone_link = proxmox.nodes(clone['node']).qemu(clone['vmid'])
-                if clone_link.status.current.get()['status'] == 'running':  # when clones are still running
-                    clone_link.status.shutdown.post()  # order shutdown again
-                    done = False  # and lose hope that we are done already.
+    done = False  # assume we are not done, as we haven't checked
+    while not done:  # keep trying
+        done = True  # hope that we are done.
+        for clone in clone_list:  # check all clones
+            clone_link = proxmox.nodes(clone['node']).qemu(clone['vmid'])
+            if clone_link.status.current.get()['status'] != target_status:  # when clones are still running
+                clone_link.status(action).post()  # order shutdown again
+                done = False  # and lose hope that we are done already.
+        if block and not done:
+            time.sleep(2)  # give the clones some time to attempt shutdown.
+        else:
+            break
 
 
 def user_enable(userid, realm, enable=True, *, proxmox: ProxmoxResource):
@@ -165,19 +166,16 @@ def sync_proxmox(proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
 
 @with_database
 def remove_templates(template_list: list, inform_proxmox=True, *, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
-    cursor.execute('Create temp table template_removal(templateID, node);')
-    cursor.executemany('insert into template_removal(templateID, node) VALUES (?, ?)',
-                       [(template['vmid'], template['node']) for template in template_list])
+    cursor.execute('Create temp table template_removal(templateID);')
+    cursor.executemany('insert into template_removal(templateID) VALUES (?)',
+                       [(template['vmid'],) for template in template_list])
     cursor.execute('''
-        select vt.vmid, vt.node 
-        from vmid_table vt inner join (
-            clone_table ct inner join (
-                allocation_table at inner join template_removal tr
-                on at.templateID = tr.templateID
-            ) sq on ct.allocationID=sq.allocationID
-        ) sq2 on vt.vmid=sq2.cloneID
-    ''')  # as fun as this is, i bet the final version will get atomized to the point where any joining is unthinkable
-    remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
+        select allocationID 
+        from allocation_table at inner join template_removal tr
+        on at.templateID = tr.templateID
+    ''')
+    for alloc in cursor.fetchall():
+        alloc_drain(alloc['allocationID'], proxmox=proxmox, cursor=cursor)
 
     if inform_proxmox:
         for template in template_list:
@@ -185,3 +183,65 @@ def remove_templates(template_list: list, inform_proxmox=True, *, proxmox: Proxm
 
     cursor.execute('delete from vmid_table where vmid = (select templateID from template_removal);')
     cursor.execute('drop table template_removal;')
+
+
+@with_database
+def alloc_fill(group_id: int, alloc_id: int, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
+    cursor.execute('''select userID from group_content where groupID = ? and userID not in (
+            select userID from clone_table where allocationID = ?)''', (group_id, alloc_id))
+    missing_clones = cursor.fetchall()
+    if not missing_clones:
+        return  # alloc is already filled as needed.
+
+    cursor.execute('''select at.allocationName, vt.vmid, vt.node from (
+            select allocationName, templateID from allocation_table where allocationID = ?
+        ) at inner join vmid_table vt on at.templateID = vt.vmid''', (alloc_id, ))
+    tmp = cursor.fetchone()
+    alloc_name, template_id, node = tmp['allocationName'], tmp['vmid'], tmp['node']
+    group_name = get_group_name(group_id, cursor=cursor)
+    our_realm = get_config_value('realm', cursor=cursor)
+    workers = []
+
+    for missing_clone in missing_clones:
+        user_id = missing_clone['userID']
+        new_vmid = proxmox.cluster.nextid.get()  # this could be a race condition.
+        workers.append(
+            proxmox.nodes(node).qemu(template_id).clone.post(
+                newid=new_vmid,
+                description=f'Klon Maszyny Wirtualnej\n'
+                            f'Grupa: {group_name}\n'
+                            f'Przydział: {alloc_name}\n'
+                            f'Dla: {user_id}\n'
+                            f'ID: {new_vmid}\n'
+                            f'Wzór: {template_id}',
+                name=f"{alloc_name}.{new_vmid}"
+            )
+        )
+        proxmox.access.acl.put(
+            path=f'/vms/{str(new_vmid)}',
+            roles='student',
+            users=f'{user_id}@{our_realm}'
+        )
+        cursor.execute('insert into vmid_table(vmid, type, node) values (?, 0, ?)', (new_vmid, node))
+        cursor.execute('insert into clone_table(cloneID, userID, allocationID) values (?,?,?)', (new_vmid, missing_clone['userID'], alloc_id))
+
+    done = False
+    while not done:
+        done = True
+        for worker in workers:
+            if proxmox.nodes(node).tasks(worker).status.get()['status'] == 'running':
+                done = False
+        if not done:
+            time.sleep(0.1)
+# def end alloc_fill
+
+
+@with_database
+def alloc_drain(alloc_id: int, proxmox: ProxmoxResource, cursor: sqlite3.Cursor):
+    cursor.execute('''select vmid, node from vmid_table vt inner join
+        (select cloneID from clone_table where allocationID = ?) ct
+        on vt.vmid = ct.cloneID
+    ''', (alloc_id,))
+    remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
+
+

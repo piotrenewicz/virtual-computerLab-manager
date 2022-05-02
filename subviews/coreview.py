@@ -117,17 +117,125 @@ def remove_user(group_id: int, user_id: str):
 @core_app.route('/group/<int:group_id>/members/add/', methods=('POST',))
 def add_user(group_id: int):
     user_id = request.form.get('InputUser')
-    if user_id:
-        with u.db_session() as cursor:
-            if not session.get('preferUserQuery'):
-                cursor.execute('select userID from user_table where fullname = ?', (user_id,))
-                user_id = u.one_row_fix(cursor.fetchone())
+    if not user_id:
+        return redirect(request.referrer or '/')
 
-            cursor.execute('insert into group_content(groupID, userID) values (?, ?)', (group_id, user_id))
-            cursor.execute('update user_table set userPermission = 1 where userID = ? and userPermission = 0', (user_id,))
-            cursor.execute('select allocationID from allocation_table where groupID = ?', (group_id,))
+    with u.db_session() as cursor:
+        if not session.get('preferUserQuery'):
+            cursor.execute('select userID from user_table where fullname = ?', (user_id,))
+            user_id = u.one_row_fix(cursor.fetchone())
+
+        cursor.execute('insert into group_content(groupID, userID) values (?, ?)', (group_id, user_id))
+        cursor.execute('update user_table set userPermission = 1 where userID = ? and userPermission = 0', (user_id,))
+        cursor.execute('select allocationID from allocation_table where groupID = ?', (group_id,))
+        with u.proxapi_session(cursor=cursor) as proxmox:
+            for alloc in cursor.fetchall():
+                u.alloc_fill(alloc['allocationID'], proxmox=proxmox, cursor=cursor)
+            u.user_enable(user_id, realm=u.get_config_value('realm', cursor=cursor), proxmox=proxmox)
+    return redirect(request.referrer or '/')
+
+
+@core_app.route('/group/<int:group_id>/alloc/')
+def alloc_list(group_id: int):
+    context = dict(group_id=group_id)
+    with u.db_session() as cursor:
+        cursor.execute('select allocationID, allocationName from allocation_table where groupID = ?', (group_id,))
+        context['alloc'] = cursor.fetchall()
+        context['group_name'] = u.get_group_name(group_id, cursor=cursor)
+
+    pwd = [
+        (context['group_name'], url_for('core.group_edit', group_id=group_id)),
+        ("Przydziały", '#')
+    ]
+    return render_template('allocations.html', context=context, pwd=pwd)
+
+
+@core_app.route('/group/<int:group_id>/alloc/<int:alloc_id>/')
+def alloc_edit(group_id: int, alloc_id: int):
+    context = dict(group_id=group_id, alloc_id=alloc_id)
+    with u.db_session() as cursor:
+        context['group_name'] = u.get_group_name(group_id, cursor=cursor)
+        cursor.execute('select allocationName from allocation_table where allocationID = ?', (alloc_id,))
+        context['alloc_name'] = u.one_row_fix(cursor.fetchone())
+        cursor.execute('''
+            select cloneID, userID, node 
+            from clone_table inner join vmid_table on cloneID = vmid 
+            where allocationID = ?''', (alloc_id,))
+        context['clones'] = [dict(row) for row in cursor.fetchall()]
+        if context['clones']:
             with u.proxapi_session(cursor=cursor) as proxmox:
-                for alloc in cursor.fetchall():
-                    u.establish_allocation(alloc['allocationID'], proxmox=proxmox, cursor=cursor)
-                u.user_enable(user_id, realm=u.get_config_value('realm', cursor=cursor), proxmox=proxmox)
+                for clone in context['clones']:
+                    clone['status'] = proxmox.nodes(clone['node']).qemu(clone['cloneID']).status.current.get()['status'] == 'running'
+                    clone['name'] = proxmox.nodes(clone['node']).qemu(clone['cloneID']).config.get()['name']
+    pwd = [
+        (context['group_name'], url_for('core.group_edit', group_id=group_id)),
+        ("Przydział", url_for('core.alloc_list', group_id=group_id)),
+        (context['alloc_name'], '#')
+    ]
+    return render_template('clones.html', context=context, pwd=pwd)
+
+
+@core_app.route('/group/<int:group_id>/alloc/add/', methods=('GET', 'POST'))
+def add_alloc(group_id: int):
+    if request.method == 'POST':  # POST body
+        data = u.form_reader('alloc')
+        with u.db_session() as cursor:
+            cursor.execute('''
+                insert into allocation_table(groupID, allocationName, templateID)
+                values (?, ?, ?) returning allocationID;
+            ''', (group_id, data['alloc_name'], data['template']))
+            alloc_id = u.one_row_fix(cursor.fetchone())
+            with u.proxapi_session(cursor=cursor) as proxmox:
+                u.alloc_fill(group_id, alloc_id, proxmox=proxmox, cursor=cursor)
+        return redirect(url_for('core.alloc_edit', group_id=group_id, alloc_id=alloc_id))
+        # POST end
+    context = dict(group_id=group_id)  # GET body
+    with u.db_session() as cursor:
+        context['group_name'] = u.get_group_name(group_id, cursor=cursor)
+        cursor.execute('select vmid, node from vmid_table where type = 1')
+        context['templates'] = [dict(row) for row in cursor.fetchall()]
+        if context['templates']:
+            with u.proxapi_session(cursor=cursor) as proxmox:
+                for template in context['templates']:
+                    template['name'] = proxmox.nodes(template['node']).qemu(template['vmid']).config.get()['name']
+    pwd = [
+        (context['group_name'], url_for('core.group_edit', group_id=group_id)),
+        ("Przydziały", url_for('core.alloc_list', group_id=group_id)),
+        ("Nowy Przydział", '#')
+    ]
+    return render_template('new_alloc.html', context=context, pwd=pwd)
+    # GET end
+
+
+@core_app.route('/group/<int:group_id>/alloc/<int:alloc_id>/remove/')
+def remove_alloc(group_id: int, alloc_id: int):
+    with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
+        u.alloc_drain(alloc_id, proxmox=proxmox, cursor=cursor)
+        cursor.execute('delete from allocation_table where allocationID = ?', (alloc_id,))
+    return redirect(url_for('core.alloc_list', group_id=group_id))
+
+
+@core_app.route('/group/<int:group_id>/alloc/<int:alloc_id>/renew/')
+def alloc_reset(group_id: int, alloc_id: int):
+    with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
+        u.alloc_drain(alloc_id, proxmox=proxmox, cursor=cursor)
+        u.alloc_fill(group_id, alloc_id, proxmox=proxmox, cursor=cursor)
+    return redirect(request.referrer or '/')
+
+
+@core_app.route('/pwrctrl/single/<int:clone_id>/<int:state>/')
+def power_control(clone_id: int, state: int):
+    print("Trying to shutdown")
+    with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
+        cursor.execute('select vmid, node from vmid_table where vmid = ?', (clone_id,))
+        u.power_clones(cursor.fetchall(), shutdown=not bool(state), block=True, proxmox=proxmox)
+    return redirect(request.referrer or '/')
+
+
+@core_app.route('/pwrctrl/bulk/<int:alloc_id>/<int:state>/')
+def power_control_bulk(alloc_id: int, state: int):
+    with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
+        cursor.execute('''select vmid, node from clone_table ct inner join vmid_table vt 
+            on ct.cloneID = vt.vmid where allocationID = ?''', (alloc_id, ))
+        u.power_clones(cursor.fetchall(), shutdown=not bool(state), block=True, proxmox=proxmox)
     return redirect(request.referrer or '/')

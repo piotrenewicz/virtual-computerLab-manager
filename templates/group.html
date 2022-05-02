@@ -57,7 +57,7 @@
             VM.
         </div>
         <div class="col-5">
-            <a class="btn w-100 btn-primary">Zarządzaj Przydziałami</a>
+            <a class="btn w-100 btn-primary" href="{{ url_for('core.alloc_list', group_id=context['id']) }}">Zarządzaj Przydziałami</a>
         </div>
     </div>
 {% endblock %}

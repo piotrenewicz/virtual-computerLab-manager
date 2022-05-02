@@ -1,10 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
 
-</body>
-</html>
+{% block user_control %}
+    <a class="col-auto btn btn-primary" href="{{ url_for('core.add_alloc', group_id=context['group_id'] ) }}">
+        <span class="fas fa-plus pe-2"></span>
+        Nowy Przydział
+    </a>
+{% endblock %}
+
+{% block content %}
+{#    <div class="row">#}       {# Searchbar copied from overview, not implementing for alloc #}
+{#        <div class="col-12">#}
+{#            <form action="{{ url_for('core.group_list') }}" method="post">#}
+{#                <div class="input-group mb-3">#}
+{#                    <input type="text" class="form-control" name="InputSearch" placeholder="Search groups"#}
+{#                           aria-label="Search groups" aria-describedby="search-button" value="{{ request.form['InputSearch'] }}">#}
+{#                    <button class="btn btn-outline-secondary" type="submit" id="search-button">#}
+{#                        <span class="fas fa-search"></span>Szukaj#}
+{#                    </button>#}
+{#                </div>#}
+{#            </form>#}
+{#        </div>#}
+{#    </div>#}
+    <div class="list-group">
+        {% for alloc in context['alloc'] %}
+            <a class="list-group-item list-group-item-action {{ loop.cycle('bg-light', 'bg-white') }}"
+               href="{{ url_for('core.alloc_edit', group_id=context['group_id'], alloc_id=alloc['allocationID'] ) }}">
+                <div class="row justify-content-between">
+                    <div class="col-auto">{{ alloc['allocationName'] }}</div>
+                    <span class="col-auto fas fa-chevron-right"></span>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+
+{% endblock %}

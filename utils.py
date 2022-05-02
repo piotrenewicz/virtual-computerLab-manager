@@ -68,6 +68,11 @@ def form_reader(section):
             return {
                 'search': request.form.get('InputSearch')
             }
+        case 'alloc':
+            return {
+                'alloc_name': request.form.get('InputAllocName'),
+                'template': int(request.form.get('InputAllocTemplate'))
+            }
 
 
 def check_proxmox(kwargs):

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
+
+
+{% block content %}
+    <form action="{{ url_for('core.add_alloc', group_id=context['group_id']) }}" method="post">
+        <div class="mb-3">
+            <label for="InputAllocName" id="InputAllocNameLabel" class="form-label">Nazwa przydziału</label>
+            <input type="text" class="form-control" name="InputAllocName" id="InputAllocName" aria-label="Set Allocation Name"
+                   aria-describedby="InputAllocNameLabel" value="{{ context['name'] }}">
+        </div>
+        <div class="mb-3">
+            <label for="InputAllocTemplate" id="InputAllocTemplateLabel" class="form-label">Wybierz wzorzec</label>
+            <select class="form-select" name="InputAllocTemplate" id="InputAllocTemplate" aria-label="Wybór wzorca">
+                {% for template in context['templates'] %}
+                    <option value="{{ template['vmid'] }}">{{ template['node'] }}: {{ template['name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary float-end">
+                <span class="fas fa-check pe-2"></span>Przydziel
+            </button>
+        </div>
+    </form>
+{% endblock %}

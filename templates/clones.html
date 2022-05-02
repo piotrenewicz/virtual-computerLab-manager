@@ -1,10 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %} Kontroler wirtualnych pracowni komputerowych {% endblock %}
 
-</body>
-</html>
+{% block before_body %}
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Usuń Przydział</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Czy na pewno chcesz usunąć Przydział {{ context['alloc_name'] }} z grupy {{ context['group_name'] }}?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <a class="btn btn-danger" href="{{ url_for('core.remove_alloc', group_id=context['group_id'], alloc_id=context['alloc_id']) }}">Usuń</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetConfirmModalLabel">Przywróć przydział do wzorca.</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Ta operacja usunie zmiany na maszynach wirtualnych. <br>
+                    Oraz przywróci początkowy stan z wzorca.<br>
+                    Czy kontynuować?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <a class="btn btn-danger" href="{{ url_for('core.alloc_reset', group_id=context['group_id'], alloc_id=context['alloc_id']) }}">Reset</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block user_control %}
+    <div class="col-auto p-0">
+        <div class="dropdown h-100">
+            <button class="btn btn-primary dropdown-toggle h-100" type="button" id="allocMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fas fa-bars pe-2"></span>
+                Opcje
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="allocMenuDropdown">
+                <li><a class="dropdown-item" type="button"
+                       href="{{ url_for('core.power_control_bulk', alloc_id=context['alloc_id'], state=1 ) }}">
+                    <span class="fas fa-power-off text-success pe-2"></span> Włącz</a>
+                </li>
+                <li><a class="dropdown-item" type="button"
+                       href="{{ url_for('core.power_control_bulk', alloc_id=context['alloc_id'], state=0 ) }}">
+                    <span class="fas fa-power-off text-danger pe-2"></span> Wyłącz</a>
+                </li>
+                <li><hr class="dropdown-divider"> </li>
+                <li><a class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#resetConfirmModal">Przywróć wzór</a></li>
+                <li><a class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">Usuń Przydział</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="list-group">
+        {% for clone in context['clones'] %}
+            <div class="list-group-item {{ loop.cycle('bg-light', 'bg-white') }}">
+                <div class="row justify-content-between">
+                    <div class="col-auto">{{ clone['name'] }} ({{ clone['userID'] }})</div>
+                    <div class="col-auto">
+                        <div class="border-3 border-secondary rounded-3">
+                        {% with subcontext=('text-primary', 'On', 'btn-outline-danger', 0, 'Wyłącz') if clone['status']
+                                      else ('text-secondary', 'Off', 'btn-outline-success px-3', 1, 'Włącz ') %}
+                            {{ subcontext[1] }}
+                            <span class="fas fa-power-off {{ subcontext[0] }} px-2"></span>
+                            <a class="btn {{ subcontext[2] }} py-0"
+                               href="{{ url_for('core.power_control', clone_id=clone['cloneID'], state=subcontext[3] ) }}">
+                                {{ subcontext[4] }}
+                            </a>
+                        {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}
