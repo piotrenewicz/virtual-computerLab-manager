@@ -14,7 +14,7 @@ def group_list():
         cursor.execute('select groupID, groupName from group_table where groupName like ?', (search,))
         groups = cursor.fetchall()
 
-    return render_template('overview.html', groups=groups)
+    return render_template('core/overview.html', groups=groups)
 
 
 @core_app.route('/group/<int:group_id>/', methods=('POST', 'GET'))
@@ -32,7 +32,7 @@ def group_edit(group_id: int):
 
     pwd = [(context['name'], '#')]
 
-    return render_template('group.html', context=context, pwd=pwd)
+    return render_template('core/group.html', context=context, pwd=pwd)
 
 
 @core_app.route('/group-new/')
@@ -89,7 +89,7 @@ def user_list(group_id: int):
         (context['group_name'], url_for('core.group_edit', group_id=group_id)),
         ("Osoby", '#')
     ]
-    return render_template('users.html', context=context, pwd=pwd)
+    return render_template('core/users.html', context=context, pwd=pwd)
 
 
 @core_app.route('/group/<int:group_id>/members/<string:user_id>/remove/')
@@ -147,7 +147,7 @@ def alloc_list(group_id: int):
         (context['group_name'], url_for('core.group_edit', group_id=group_id)),
         ("Przydziały", '#')
     ]
-    return render_template('allocations.html', context=context, pwd=pwd)
+    return render_template('core/allocations.html', context=context, pwd=pwd)
 
 
 @core_app.route('/group/<int:group_id>/alloc/<int:alloc_id>/')
@@ -172,7 +172,7 @@ def alloc_edit(group_id: int, alloc_id: int):
         ("Przydział", url_for('core.alloc_list', group_id=group_id)),
         (context['alloc_name'], '#')
     ]
-    return render_template('clones.html', context=context, pwd=pwd)
+    return render_template('core/clones.html', context=context, pwd=pwd)
 
 
 @core_app.route('/group/<int:group_id>/alloc/add/', methods=('GET', 'POST'))
@@ -203,7 +203,7 @@ def add_alloc(group_id: int):
         ("Przydziały", url_for('core.alloc_list', group_id=group_id)),
         ("Nowy Przydział", '#')
     ]
-    return render_template('new_alloc.html', context=context, pwd=pwd)
+    return render_template('core/new_alloc.html', context=context, pwd=pwd)
     # GET end
 
 
