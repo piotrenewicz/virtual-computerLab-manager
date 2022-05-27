@@ -99,8 +99,13 @@ create table allocation_table(
     allocationID INTEGER PRIMARY KEY,
     groupID INTEGER NOT NULL REFERENCES group_table(groupID) ON DELETE CASCADE ,
     allocationName TEXT,
-    templateID INTEGER NOT NULL REFERENCES vmid_table(vmid) ON DELETE CASCADE
+    templateID INTEGER NOT NULL REFERENCES vmid_table(vmid) ON DELETE CASCADE,
+    author TEXT,
+    created  INTEGER NOT NULL DEFAULT (strftime('%s')),
+    expires INTEGER DEFAULT 0
 );
+-- Note that 0 here, in expires, means that it will never expire.
+-- Otherwise the number defines duration in seconds to hold the allocation, counted from create timestamp.
 
 create table clone_table(
     cloneID INTEGER NOT NULL PRIMARY KEY REFERENCES vmid_table(vmid) ON DELETE RESTRICT,
@@ -111,3 +116,7 @@ create table clone_table(
 
 -- maybe delete restrict, will throw error, that can be read to
 -- handle removing recursively.. ask forgiveness ftw!
+
+--TODAY I LEARNED! do not copy a database, when a server is running that depends on it.
+-- transactions may not be fully closed, and it is very possible for the act of reading to copy, to be enough to corrupt both copies.
+-- stop the server, then sync the deployment and dev. then restart the server thank you!

@@ -71,7 +71,8 @@ def form_reader(section):
         case 'alloc':
             return {
                 'alloc_name': request.form.get('InputAllocName'),
-                'template': int(request.form.get('InputAllocTemplate'))
+                'template': int(request.form.get('InputAllocTemplate')),
+                'expire': int(request.form.get('InputAllocExpireN')) * int(request.form.get('InputAllocExpireT'))
             }
 
 

@@ -57,6 +57,7 @@
                     <span class="fas fa-power-off text-danger pe-2"></span> Stop all</a>
                 </li>
                 <li><hr class="dropdown-divider"> </li>
+                <li><a class="dropdown-item" type="button" href="{{ url_for('core.alloc_detail', group_id=context['group_id'], alloc_id=context['alloc_id'] ) }}">Szczegóły</a></li>
                 <li><a class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#resetConfirmModal">Przywróć wzór</a></li>
                 <li><a class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">Usuń Przydział</a></li>
             </ul>

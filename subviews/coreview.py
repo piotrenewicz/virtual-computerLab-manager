@@ -1,5 +1,6 @@
 import utils as u
 from flask import Blueprint, render_template, request, redirect, session, url_for
+from datetime import datetime
 
 
 core_app = Blueprint('core', __name__, template_folder='templates')
@@ -181,9 +182,9 @@ def add_alloc(group_id: int):
         data = u.form_reader('alloc')
         with u.db_session() as cursor:
             cursor.execute('''
-                insert into allocation_table(groupID, allocationName, templateID)
-                values (?, ?, ?) returning allocationID;
-            ''', (group_id, data['alloc_name'], data['template']))
+                insert into allocation_table(groupID, allocationName, templateID, expires, author)
+                values (?, ?, ?, ?, ?) returning allocationID;
+            ''', (group_id, data['alloc_name'], data['template'], data['expire'], session.get('login')))
             alloc_id = u.one_row_fix(cursor.fetchone())
             with u.proxapi_session(cursor=cursor) as proxmox:
                 u.alloc_fill(group_id, alloc_id, proxmox=proxmox, cursor=cursor)
@@ -222,6 +223,35 @@ def alloc_reset(group_id: int, alloc_id: int):
     with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
         u.alloc_drain(alloc_id, proxmox=proxmox, cursor=cursor)
         u.alloc_fill(group_id, alloc_id, proxmox=proxmox, cursor=cursor)
+    return redirect(request.referrer or '/')
+
+
+@core_app.route('/group/<int:group_id>/alloc/<int:alloc_id>/details/')
+def alloc_detail(group_id: int, alloc_id: int):
+    with u.db_session() as cursor:
+        cursor.execute("""select author, created, expires, cast(strftime('%s') as integer) as now 
+            from allocation_table where allocationID = ?""", (alloc_id,))
+        data = u.one_row_fix(cursor.fetchone())
+    state = None if not data['expires'] else data['created'] + data['expires'] < data['now']  # expired state?
+    result = f"Stan przydziału: { {None: 'wieczny', False: 'aktywny', True: 'wygasły'}[state] }\n" \
+             f"Przydział stworzony przez: {data['author']}\n" \
+             f"Data stworzenia: { datetime.fromtimestamp(data['created']) }\n" \
+             f"""{  
+                f'Data wygaśnięcia: { datetime.fromtimestamp(data["created"] + data["expires"]) }'
+                f'{ chr(10)*2 }'
+                f'Zegar na serwerze: { datetime.fromtimestamp(data["now"]) }'
+                if state is not None else '' 
+             }"""
+    # I wanted newlines in an optional section.
+    # Optional section is gained by putting the whole section as a variable to be formatted in, which could be empty
+    # I didn't want to use '''multiline string''' for the variable as that would capture \t chars, from indentation.
+    # or force me to drop the indentation.
+    # I also couldn't use \n characters becasue '\' symbol is disallowed inside format{ }
+    # https://towardsdatascience.com/how-to-add-new-line-in-python-f-strings-7b4ccc605f4a
+    # This page talks about such problem and provided basis for my solution,
+    # of inserting the newline characters by their ascii number, like so:
+    # f'{ chr(10)*2 }' instead of f'<br><br>'
+    u.flash(result, 'info')
     return redirect(request.referrer or '/')
 
 
