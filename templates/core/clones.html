@@ -50,11 +50,11 @@
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="allocMenuDropdown">
                 <li><a class="dropdown-item" type="button"
                        href="{{ url_for('core.power_control_bulk', alloc_id=context['alloc_id'], state=1 ) }}">
-                    <span class="fas fa-power-off text-success pe-2"></span> Włącz</a>
+                    <span class="fas fa-power-off text-success pe-2"></span> Start all</a>
                 </li>
                 <li><a class="dropdown-item" type="button"
                        href="{{ url_for('core.power_control_bulk', alloc_id=context['alloc_id'], state=0 ) }}">
-                    <span class="fas fa-power-off text-danger pe-2"></span> Wyłącz</a>
+                    <span class="fas fa-power-off text-danger pe-2"></span> Stop all</a>
                 </li>
                 <li><hr class="dropdown-divider"> </li>
                 <li><a class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#resetConfirmModal">Przywróć wzór</a></li>
@@ -72,8 +72,8 @@
                     <div class="col-auto">{{ clone['name'] }} ({{ clone['userID'] }})</div>
                     <div class="col-auto">
                         <div class="border-3 border-secondary rounded-3">
-                        {% with subcontext=('text-primary', 'On', 'btn-outline-danger', 0, 'Wyłącz') if clone['status']
-                                      else ('text-secondary', 'Off', 'btn-outline-success px-3', 1, 'Włącz ') %}
+                        {% with subcontext=('text-primary', 'On', 'btn-outline-danger', 0, 'Stop') if clone['status']
+                                      else ('text-secondary', 'Off', 'btn-outline-success px-3', 1, 'Start ') %}
                             {{ subcontext[1] }}
                             <span class="fas fa-power-off {{ subcontext[0] }} px-2"></span>
                             <a class="btn {{ subcontext[2] }} py-0"
