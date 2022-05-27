@@ -60,16 +60,14 @@
                     <div style="height: 20vh"></div>
                     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
                         {% for category, message in get_flashed_messages(with_categories=True) %}
-                            <div id="liveToast" class="toast show {{ toast_category_map[category] }}" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div id="liveToast" class="toast show {{ toast_category_map[category] }} fs-4 w-auto" role="alert" aria-live="assertive" aria-atomic="true">
                                 <div class="toast-header">
-                {#                        <img src="..." class="rounded me-2" alt="...">#}
                                     <strong class="me-auto">{{ category }}</strong>
                                     <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                                 </div>
-                                <div class="toast-body">
-        {#                            Hello, world! This is a toast message.#}
-                                    {{ message }}
-                                </div>
+                                <div class="toast-body"><span>
+                                    {% autoescape off %}{{ message | escape | replace("\n", "<br>") }}{% endautoescape %}
+                                </span></div>   {# processing newline characters for html use #}
                             </div>
                         {% endfor %}
                     </div>
