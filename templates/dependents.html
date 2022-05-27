@@ -8,6 +8,12 @@
     {% endwith %}
 {% endblock %}
 
+{% block user_control %}
+    <a class="col-auto btn btn-primary" href="{{ url_for('dep.clean_expired_alloc') }}">
+        <span class="fas fa-trash pe-2"></span>
+        Usuń przeterminowane przydziały
+    </a>
+{% endblock %}
 
 {% block content %}
     <div class="accordion" id="accRoot">

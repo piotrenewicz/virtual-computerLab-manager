@@ -245,3 +245,17 @@ def alloc_drain(alloc_id: int, proxmox: ProxmoxResource, cursor: sqlite3.Cursor)
     remove_clones(cursor.fetchall(), proxmox=proxmox, cursor=cursor)
 
 
+@with_database
+def remove_expired_alloc(cursor: sqlite3.Cursor):
+    cursor.execute("""
+        select allocationID from allocation_table
+        where expires != 0 and created + expires < cast(strftime('%s') as integer)
+    """)
+    old_alloc_list = [row['allocationID'] for row in cursor.fetchall()]
+    if len(old_alloc_list) == 0:
+        return  # early exit
+
+    with proxapi_session(cursor=cursor) as proxmox:
+        for old_alloc in old_alloc_list:
+            alloc_drain(alloc_id=old_alloc, proxmox=proxmox, cursor=cursor)
+            cursor.execute('delete from allocation_table where allocationID = ?', (old_alloc,))

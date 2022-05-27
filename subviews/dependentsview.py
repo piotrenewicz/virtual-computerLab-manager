@@ -1,5 +1,5 @@
 import utils as u
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, request
 
 dependency_app = Blueprint('dep', __name__, template_folder='templates')
 
@@ -16,6 +16,12 @@ def dependents_view():
                 cursor.execute('select allocationID, groupID, allocationName from allocation_table where templateID = ?', (template,))
                 cluster[node][template] = cursor.fetchall()
     return render_template('dependents.html', cluster=cluster)
+
+
+@dependency_app.route('/depend/clean_old_alloc')
+def clean_expired_alloc():
+    u.remove_expired_alloc()
+    return redirect(request.referrer or '/')
 
 #    cluster: {
 #       'pve': {  # node on cluster
