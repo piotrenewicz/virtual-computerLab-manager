@@ -44,7 +44,7 @@ def ldap_sync(cursor: sqlite3.Cursor):
         update user_table
         set fullname = (select fullname from user_sync where userID = user_table.userID) 
         where fullname <> (select fullname from user_sync where userID = user_table.userID);
-    ''')
+    ''')  #  https://youtrack.jetbrains.com/issue/WI-45968?_gl=1*gjcqp7*_ga*MjEzMDU0MzQxOS4xNjUwNDM4MjYy*_ga_9J976DJZ68*MTY1MzQ5NjUxNS4xLjEuMTY1MzQ5NjUzNi4w&_ga=2.23433853.635845950.1653496516-2130543419.1650438262
     cursor.execute('''
         select vmid, node from vmid_table where vmid = (
             select cloneID from clone_table 

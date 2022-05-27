@@ -9,7 +9,7 @@ login_app = Blueprint('login', __name__, template_folder='templates')
 def login():
     if request.method == 'POST':
         if u.perform_login():
-            return redirect(session.pop('login/return', None) or request.root_url)
+            return redirect(session.pop('login/return', request.root_url))
         # posted wrong login info
 
     return render_template('login.html')

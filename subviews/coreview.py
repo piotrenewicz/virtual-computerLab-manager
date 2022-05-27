@@ -177,7 +177,7 @@ def alloc_edit(group_id: int, alloc_id: int):
 
 @core_app.route('/group/<int:group_id>/alloc/add/', methods=('GET', 'POST'))
 def add_alloc(group_id: int):
-    if request.method == 'POST':  # POST body
+    def handle_post():
         data = u.form_reader('alloc')
         with u.db_session() as cursor:
             cursor.execute('''
@@ -188,23 +188,25 @@ def add_alloc(group_id: int):
             with u.proxapi_session(cursor=cursor) as proxmox:
                 u.alloc_fill(group_id, alloc_id, proxmox=proxmox, cursor=cursor)
         return redirect(url_for('core.alloc_edit', group_id=group_id, alloc_id=alloc_id))
-        # POST end
-    context = dict(group_id=group_id)  # GET body
-    with u.db_session() as cursor:
-        context['group_name'] = u.get_group_name(group_id, cursor=cursor)
-        cursor.execute('select vmid, node from vmid_table where type = 1')
-        context['templates'] = [dict(row) for row in cursor.fetchall()]
-        if context['templates']:
-            with u.proxapi_session(cursor=cursor) as proxmox:
-                for template in context['templates']:
-                    template['name'] = proxmox.nodes(template['node']).qemu(template['vmid']).config.get()['name']
-    pwd = [
-        (context['group_name'], url_for('core.group_edit', group_id=group_id)),
-        ("Przydziały", url_for('core.alloc_list', group_id=group_id)),
-        ("Nowy Przydział", '#')
-    ]
-    return render_template('core/new_alloc.html', context=context, pwd=pwd)
-    # GET end
+
+    def handle_get():
+        context = dict(group_id=group_id)
+        with u.db_session() as cursor:
+            context['group_name'] = u.get_group_name(group_id, cursor=cursor)
+            cursor.execute('select vmid, node from vmid_table where type = 1')
+            context['templates'] = [dict(row) for row in cursor.fetchall()]
+            if context['templates']:
+                with u.proxapi_session(cursor=cursor) as proxmox:
+                    for template in context['templates']:
+                        template['name'] = proxmox.nodes(template['node']).qemu(template['vmid']).config.get()['name']
+        pwd = [
+            (context['group_name'], url_for('core.group_edit', group_id=group_id)),
+            ("Przydziały", url_for('core.alloc_list', group_id=group_id)),
+            ("Nowy Przydział", '#')
+        ]
+        return render_template('core/new_alloc.html', context=context, pwd=pwd)
+
+    return handle_post() if request.method == 'POST' else handle_get()
 
 
 @core_app.route('/group/<int:group_id>/alloc/<int:alloc_id>/remove/')
@@ -225,7 +227,6 @@ def alloc_reset(group_id: int, alloc_id: int):
 
 @core_app.route('/pwrctrl/single/<int:clone_id>/<int:state>/')
 def power_control(clone_id: int, state: int):
-    print("Trying to shutdown")
     with u.db_session() as cursor, u.proxapi_session(cursor=cursor) as proxmox:
         cursor.execute('select vmid, node from vmid_table where vmid = ?', (clone_id,))
         u.power_clones(cursor.fetchall(), shutdown=not bool(state), block=True, proxmox=proxmox)
